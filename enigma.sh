@@ -67,6 +67,8 @@ show_main_dir() {
 	echo ""
 }
 
+
+### I probably don't need that and can just use function below
 get_dir_elements() {
     dir_path="$1"
     local elements
@@ -155,14 +157,15 @@ show_logs() {
 
 # --- Main functions -----------------------------------------------
 
-
+### I need to finish this function later
 clean_main_dir() {
+    paths=$(get_dir_elements_paths "$MAIN_DIR")
 
-    readarray -t paths < <(ls -1 "$MAIN_DIR")
 
     for path in "${paths[@]}"; do
         echo "$folder/$path"
     done
+    
 }
 # ------------------------------------------------------------------
 

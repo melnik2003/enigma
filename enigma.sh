@@ -67,29 +67,49 @@ show_main_dir() {
 	echo ""
 }
 
-
-### I probably don't need that and can just use function below
-get_dir_elements() {
-    dir_path="$1"
-    local elements
-    mapfile -t elements < <(find "$dir_path" -maxdepth 1 -mindepth 1 -exec basename {} \;)
-    echo "${elements[@]}"
+check_path() {
+    path="$1"
+	
+	if [ -d $path ] || [ -e $path ]; then
+		return 0
+	else
+		show_logs 1 "noPath" "$path"
+	fi
 }
 
-get_dir_elements_paths() {
+check_dir() {
     dir_path="$1"
-    local elements=($(get_dir_elements "$dir_path"))
-    
-    local elements_paths=()
-    for element in "${elements[@]}"; do
-        elements_paths+=("${dir_path}/${element}")
-    done
-    
-    echo "${elements_paths[@]}"
+	
+	if [ -d $dir_path ] ; then
+		return 0
+	else
+		show_logs 1 "noDir" "$dir_path"
+	fi
+}
+
+wipe_path() {
+	path="$1"
+	
+    check_path "$path"
+    sudo wipe -rf $path
+
+    return 0
+}
+
+### I should check if this works correctly and maybe simplify it
+### I also need to check if it handles special characters in paths
+get_dir_elements() {
+    dir_path="$1"
+    check_dir "$dir_path"
+    local elements
+    mapfile -t elements < <(find "$dir_path" -maxdepth 1)
+    echo "${elements[@]}"
 }
 
 check_error() {
     error="$1"
+    obj="$2"
+
     case "$error" in
         "mainParam")
             msg="Choose the only one main parameter"
@@ -101,13 +121,13 @@ check_error() {
             msg="Choose another name"
         ;;
         "noDir")
-            msg="There's no such directory"
+            msg="There's no such directory: ${obj}"
         ;;
         "noFile")
-            msg="There's no such file"
+            msg="There's no such file: ${obj}"
         ;;
         "noPath")
-            msg="There's no such path"
+            msg="There's no such path: ${obj}"
         ;;
         *)
             msg="$error"
@@ -126,11 +146,12 @@ show_logs() {
 
     msg_log_lvl=$1
     msg="$2"
+    obj="$3"
 
     case $msg_log_lvl in
         "1")
             if [ $LOGGING_LEVEL -ge $msg_log_lvl ]; then
-                msg=$(check_error $msg)
+                msg=$(check_error "$msg" "$obj")
                 echo "${error_prefix} ${msg}" >&2
             fi
 
@@ -157,15 +178,35 @@ show_logs() {
 
 # --- Main functions -----------------------------------------------
 
-### I need to finish this function later
+### Add warning and $yes support
 clean_main_dir() {
-    paths=$(get_dir_elements_paths "$MAIN_DIR")
-
+    paths=$(get_dir_elements "$MAIN_DIR")
 
     for path in "${paths[@]}"; do
-        echo "$folder/$path"
+        if [[ " ${MAIN_SUBDIRS[@]} " =~ "$path" ]]
+            continue
+        else
+            wipe_path "$path"
+        fi
     done
     
+    paths=$(get_dir_elements "$INPUT_DIR")
+
+    for path in "${paths[@]}"; do
+        wipe_path "$path"
+    done
+
+    paths=$(get_dir_elements "$OUTPUT_DIR")
+
+    for path in "${paths[@]}"; do
+        wipe_path "$path"
+    done
+
+    paths=$(get_dir_elements "$TEMP_DIR")
+
+    for path in "${paths[@]}"; do
+        wipe_path "$path"
+    done
 }
 # ------------------------------------------------------------------
 
@@ -200,8 +241,6 @@ wipe_flag=0
 while getopts ":hvIedcp:i:o:wW" param
 do
     if [[ " ${main_params[@]} " =~ "$param" ]]; then
-        script_arg="$OPTARG"
-
         if [ $main_param == "" ]; then
             main_param="$param"
         else
@@ -218,13 +257,16 @@ do
         "c") pass ;;
 
         "i")
+            check_path "$OPTARG"
             input_paths+=("$OPTARG")
+            
             if [ wipe_flag -eq 0 ]; then
                 wipe="none"
             fi
             input_flag=1
             ;;
         "o")
+            check_path "$OPTARG"
             output_path="$OPTARG"
             output_flag=1
             ;;
@@ -239,6 +281,7 @@ do
         "y")
             yes=1
             ;;
+
         "?")
             show_logs 1 "Неизвестная опция $OPTARG"
             ;;
@@ -280,7 +323,7 @@ case "$main_param" in
             check_main_dir()
         fi
         if [ input_flag -eq 0 ]; then
-            input_paths=$(get_dir_elements_paths "$INPUT_DIR")
+            input_paths=$(get_dir_elements "$INPUT_DIR")
         fi
         if [ output_flag -eq 0 ]; then
             output_path=$OUTPUT_DIR
@@ -292,7 +335,7 @@ case "$main_param" in
             check_main_dir()
         fi
         if [ input_flag -eq 0 ]; then
-            input_paths=$(get_dir_elements_paths "$INPUT_DIR")
+            input_paths=$(get_dir_elements "$INPUT_DIR")
         fi
         if [ output_flag -eq 0 ]; then
             output_path=$OUTPUT_DIR

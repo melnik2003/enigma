@@ -17,6 +17,8 @@
 # Add main dir check on start
 # Let -i recreate the script on use
 # Add -i -e -d functions
+# Add debug and info logs
+# Test if get_dir_elements handles special characters in paths
 # ------------------------------------------------------------------
 
 # --- Global -------------------------------------------------------
@@ -101,8 +103,6 @@ wipe_path() {
     return 0
 }
 
-### I should check if this works correctly and maybe simplify it
-### I also need to check if it handles special characters in paths
 get_dir_elements() {
     dir_path="$1"
     validate_dir "$dir_path"
@@ -219,6 +219,8 @@ clean_main_dir() {
     for path in "${paths[@]}"; do
         wipe_path "$path"
     done
+
+    return 0
 }
 # ------------------------------------------------------------------
 

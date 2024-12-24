@@ -7,7 +7,7 @@
 # The script works in semi-automatic mode, gpg interface handles some 
 # of the actions like writing passwords
 # I recommend thou to initialize the main directory using -i, it will 
-# help reduce the damage thou can do to thine system if thou shallst 
+# help reduce the damage thou canst dost to thine system if thou shallst 
 # pass wrong file paths to the script
 # The main directory is not supposed to store files, use it considering
 # every file in it shalt be deleted sooner or later
@@ -37,7 +37,7 @@ LOGGING_LEVEL=3
 # ------------------------------------------------------------------
 
 # --- Utils --------------------------------------------------------
-show_help_ru() {
+show_help_en() {
     echo "Usage: . ./$0.sh [-param <value>]"
     echo ""
     echo "Main params:"
@@ -227,7 +227,7 @@ clean_main_dir() {
 
 # --- Params processing --------------------------------------------
 if [ $# == 0 ] ; then
-    show_help_ru
+    show_help_en
     exit 1;
 fi
 
@@ -313,7 +313,7 @@ touch $LOCK_FILE
 # --- Body --------------------------------------------------------
 case "$main_param" in
     "h")
-        show_help_ru
+        show_help_en
         ;;
     "v")
         echo "Version: ${VERSION}"

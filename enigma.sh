@@ -6,9 +6,9 @@
 # It requires tar, gzip, gpg, wipe, tree, openssl
 # The script works in semi-automatic mode, gpg interface handles some 
 # of the actions like writing passwords
-# I recommend thou to initialize the main directory using -i,
-# it will help reduce the damage thou can do to thine system if thou
-# shallst pass wrong file paths to the script
+# I recommend thou to initialize the main directory using -i, it will 
+# help reduce the damage thou can do to thine system if thou shallst 
+# pass wrong file paths to the script
 # The main directory is not supposed to store files, use it considering
 # every file in it shalt be deleted sooner or later
 # ------------------------------------------------------------------
@@ -186,12 +186,6 @@ clean_main_dir() {
 
     if [ $YES -eq 0 ]; then
         show_logs 2 "The script shallst delete all from the main directory."
-        read -p "Dost thou wish to continue? (y/n): " answer
-
-        if [ ! "$answer" == "y" ] || [ ! "$answer" == "Y" ]; then
-            show_logs 3 "Closing script..."
-            exit 0
-        fi
     fi
 
     for path in "${paths[@]}"; do
@@ -288,13 +282,13 @@ do
             ;;
 
         "?")
-            show_logs 1 "Неизвестная опция $OPTARG"
+            show_logs 1 "Unknown parameter $OPTARG"
             ;;
         ":")
-            show_logs 1 "Ожидается аргумент для опции $OPTARG"
+            show_logs 1 "Need an argument for $OPTARG"
             ;;
         *)
-            show_logs 1 "Неизвестная ошибка во время обработки опций"
+            show_logs 1 "Uknown error while parsing parameters"
             ;;
     esac
 done
@@ -305,8 +299,7 @@ shift $(($OPTIND - 1))
 # --- Locks -------------------------------------------------------
 LOCK_FILE=/tmp/$SUBJECT.lock
 if [ -f "$LOCK_FILE" ]; then
-    echo "Скрипт уже запущен"
-    exit
+    show_logs 1 "The script is running right now. If not delete the lock file: ${LOCK_FILE}"
 fi
 
 trap "rm -f $LOCK_FILE" EXIT
@@ -319,7 +312,7 @@ case "$main_param" in
         show_help_ru
         ;;
     "v")
-        echo "Версия: ${VERSION}"
+        echo "Version: ${VERSION}"
         ;;
     "e")
         if [ input_flag -eq 0 ] || [ output_flag -eq 0 ]; then

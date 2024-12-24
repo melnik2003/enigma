@@ -1,8 +1,8 @@
 #!/bin/bash
-# ------------------------------------------------------------------
-# [Мельников М.А.] Enigma encryption scrypt
+# --- Info ---------------------------------------------------------
+# [Мельников М.А.] "Enigma" encryption-decryption scrypt
 #
-# This is the script for secure and simple encryption
+# This is the script for secure and simple encryption operations
 # It requires tar, gzip, gpg, wipe, tree, openssl
 # The script works in semi-automatic mode, gpg interface handles some 
 # of the actions like writing passwords
@@ -11,6 +11,12 @@
 # pass wrong file paths to the script
 # The main directory is not supposed to store files, use it considering
 # every file in it shalt be deleted sooner or later
+# ------------------------------------------------------------------
+
+# --- Notes --------------------------------------------------------
+# Add main dir check on start
+# Let -i recreate the script on use
+# Add -i -e -d functions
 # ------------------------------------------------------------------
 
 # --- Global -------------------------------------------------------
@@ -114,10 +120,10 @@ check_error() {
             msg="Choose the only one main parameter"
         ;;
         "sudo")
-            msg="Use this param with sudo"
+            msg="Use with sudo"
         ;;
-        "name")
-            msg="Choose another name"
+        "singletone")
+            msg="The script is running right now. If not, delete the lock file: ${obj}"
         ;;
         "noDir")
             msg="There's no such directory: ${obj}"
@@ -223,10 +229,6 @@ if [ $# == 0 ] ; then
     exit 1;
 fi
 
-if [[ ! -d "$PATH_TO_SCRIPTS" || ! -d "$PATH_TO_LINKS" ]]; then
-    show_logs 1 "checkPaths"
-fi
-
 if [ LOGGING_LEVEL -eq 4 ]; then
     show_main_dir
 fi
@@ -299,7 +301,7 @@ shift $(($OPTIND - 1))
 # --- Locks -------------------------------------------------------
 LOCK_FILE=/tmp/$SUBJECT.lock
 if [ -f "$LOCK_FILE" ]; then
-    show_logs 1 "The script is running right now. If not delete the lock file: ${LOCK_FILE}"
+    show_logs 1 "singletone" "$LOCK_FILE"
 fi
 
 trap "rm -f $LOCK_FILE" EXIT

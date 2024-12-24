@@ -1,17 +1,16 @@
 #!/bin/bash
 # ------------------------------------------------------------------
-# [Мельников М.А.] Шифровальщик Enigma
+# [Мельников М.А.] Enigma encryption scrypt
 #
-# Скрипт для шифрования папки или файла
-# Для работы требуются утилиты tar, gzip, gpg, wipe, tree, openssl
-# Скрипт работает в полуавтоматическом режиме, ввод паролей происходит 
-# внутри интерфейса gpg
-# Рекомендуется инициализировать рабочую директорию и работать с ней,
-# чтобы сократить риски безвозвратного удаления файлов в случае ошибки
-# пользователя
-# Рабочая директория не предназначена для хранения файлов и все
-# файлы в ней имеют риск быть удалёнными при некорректном использовании
-# скрипта или ошибки в коде
+# This is the script for secure and simple encryption
+# It requires tar, gzip, gpg, wipe, tree, openssl
+# The script works in semi-automatic mode, gpg interface handles some 
+# of the actions like writing passwords
+# I recommend thou to initialize the main directory using -i,
+# it will help reduce the damage thou can do to thine system if thou
+# shallst pass wrong file paths to the script
+# The main directory is not supposed to store files, use it considering
+# every file in it shalt be deleted sooner or later
 # ------------------------------------------------------------------
 
 # --- Global -------------------------------------------------------
@@ -31,34 +30,34 @@ LOGGING_LEVEL=3
 
 # --- Utils --------------------------------------------------------
 show_help_ru() {
-    echo "Использование: . ./$0.sh [-param <value>]"
+    echo "Usage: . ./$0.sh [-param <value>]"
     echo ""
-    echo "Основные параметры:"
-    echo "-I                Инициализировать рабочую директорию"
-    echo "                  Используется при первом запуске"
+    echo "Main params:"
+    echo "-I                Init the main directory"
+    echo "                  Use on the first launch"
     echo ""
-    echo "-e                Зашифровать содержимое директории input в output"
-    echo "                  Можно использовать вместе с -i -o -w -W -y"
+    echo "-e                Encrypt the contents of input to output"
+    echo "                  Use with -i -o to specify input files and an output directory"
+    echo "                  Use with -w -W to wipe input files and -y to skip warnings"
     echo ""
-    echo "-d                Расшифровать каждый архив директории input в output"
-    echo "                  Можно использовать вместе с -i -o -w -W -y"
+    echo "-d                Decrypt the contents of input to output"
+    echo "                  Thou can use it with -i -o -w -W -y the same as -e"
     echo ""
-    echo "-c                Очистить рабочую директорию"
-    echo "                  Использовать с -W для жёсткой чистки"
+    echo "-c                Clean the main directory"
+    echo "                  Use with -W for thorough* cleaning"
     echo ""
-    echo "-h                Напечатать эту справку"
-    echo "-v                Напечатать версию программы"
+    echo "-h                Print this help message"
+    echo "-v                Print the script version"
     echo ""
-    echo "Дополнительные параметры:"
-    echo "-i <path>         Указать файлы и директории для шифрования"
-    echo "                  При указании нескольких путей, для каждого из них прописывать -i <путь>"
-    echo "-o <dir_path>     Указать директорию вывода"
-    echo "-w                Экономно удалить входные файлы"
-    echo "                  При работе в рабочей директории включено по умолчанию"
-    echo "                  При расшифровке архивов происходит обычное удаление, чтобы не тратить ресурсы накопителя"
-    echo "-W                Жёстко удалить входные файлы"
-    echo "                  При расшифровке архивов происходит безвозвратное удаление"
-    echo "-y                Пропустить все предупреждения"
+    echo "Additional params:"
+    echo "-i <path>         Specify a path for an input file or directory"
+    echo "                  To use with several files and directories, thou shallst use it with -i <path> for each path"
+    echo "-o <dir_path>     Specify the output directory"
+    echo "-w                Wipe files sparingly"
+    echo "                  When the archives art decrypted, normal deletion doth take place, lest drive resources be wasted."
+    echo "-W                Wipe files thoroughly"
+    echo "                  *Full and complete wiping of all non-output files, without any opportunity for restoration"
+    echo "-y                Skip all warnings"
 }
 
 show_main_dir() {
@@ -67,7 +66,7 @@ show_main_dir() {
 	echo ""
 }
 
-check_path() {
+validate_path() {
     path="$1"
 	
 	if [ -d $path ] || [ -e $path ]; then
@@ -77,7 +76,7 @@ check_path() {
 	fi
 }
 
-check_dir() {
+validate_dir() {
     dir_path="$1"
 	
 	if [ -d $dir_path ] ; then
@@ -90,7 +89,7 @@ check_dir() {
 wipe_path() {
 	path="$1"
 	
-    check_path "$path"
+    validate_path "$path"
     sudo wipe -rf $path
 
     return 0
@@ -100,7 +99,7 @@ wipe_path() {
 ### I also need to check if it handles special characters in paths
 get_dir_elements() {
     dir_path="$1"
-    check_dir "$dir_path"
+    validate_dir "$dir_path"
     local elements
     mapfile -t elements < <(find "$dir_path" -maxdepth 1)
     echo "${elements[@]}"
@@ -137,7 +136,6 @@ check_error() {
     return $msg
 }
 
-# Добавить функцию выхода из скрипта и перенаправлять выход на неё
 show_logs() {
     error_prefix="\e[31m[ERROR]\e[0m"
     warning_prefix="\e[33m[WARNING]\e[0m"
@@ -160,6 +158,12 @@ show_logs() {
         "2")
             if [ $LOGGING_LEVEL -ge $msg_log_lvl ]; then
                 echo "${warning_prefix} ${msg}"
+                read -p "Dost thou wish to continue? (y/n): " answer
+
+                if [ ! "$answer" == "y" ] || [ ! "$answer" == "Y" ]; then
+                    show_logs 3 "Closing script..."
+                    exit 0
+                fi
             fi
         ;;
         "3")
@@ -177,10 +181,18 @@ show_logs() {
 # ------------------------------------------------------------------
 
 # --- Main functions -----------------------------------------------
-
-### Add warning and $yes support
 clean_main_dir() {
     paths=$(get_dir_elements "$MAIN_DIR")
+
+    if [ $YES -eq 0 ]; then
+        show_logs 2 "The script shallst delete all from the main directory."
+        read -p "Dost thou wish to continue? (y/n): " answer
+
+        if [ ! "$answer" == "y" ] || [ ! "$answer" == "Y" ]; then
+            show_logs 3 "Closing script..."
+            exit 0
+        fi
+    fi
 
     for path in "${paths[@]}"; do
         if [[ " ${MAIN_SUBDIRS[@]} " =~ "$path" ]]
@@ -229,16 +241,15 @@ declare -a main_params=("h" "v" "I" "e" "d" "c")
 
 main_param=""
 
-declare -a input_paths()
-output_path="$OUTPUT_DIR"
-wipe="econom"
-yes=0
+declare -a INPUT_PATHS()
+OUTPUT_PATH="$OUTPUT_DIR"
+WIPE="none"
+YES=0
 
 input_flag=0
 output_flag=0
-wipe_flag=0
 
-while getopts ":hvIedcp:i:o:wW" param
+while getopts ":hvIedcp:i:o:wWy" param
 do
     if [[ " ${main_params[@]} " =~ "$param" ]]; then
         if [ $main_param == "" ]; then
@@ -257,29 +268,23 @@ do
         "c") pass ;;
 
         "i")
-            check_path "$OPTARG"
-            input_paths+=("$OPTARG")
-            
-            if [ wipe_flag -eq 0 ]; then
-                wipe="none"
-            fi
+            validate_path "$OPTARG"
+            INPUT_PATHS+=("$OPTARG")
             input_flag=1
             ;;
         "o")
-            check_path "$OPTARG"
-            output_path="$OPTARG"
+            validate_path "$OPTARG"
+            OUTPUT_PATH="$OPTARG"
             output_flag=1
             ;;
         "w")
-            wipe_flag=1
-            wipe="econom"
+            WIPE="spare"
             ;;
         "W")
-            wipe_flag=1
-            wipe="hard"
+            WIPE="complete"
             ;;
         "y")
-            yes=1
+            YES=1
             ;;
 
         "?")
@@ -295,8 +300,6 @@ do
 done
 
 shift $(($OPTIND - 1))
-
-unset wipe_flag
 # -----------------------------------------------------------------
 
 # --- Locks -------------------------------------------------------
@@ -323,27 +326,28 @@ case "$main_param" in
             check_main_dir()
         fi
         if [ input_flag -eq 0 ]; then
-            input_paths=$(get_dir_elements "$INPUT_DIR")
+            INPUT_PATHS=$(get_dir_elements "$INPUT_DIR")
         fi
         if [ output_flag -eq 0 ]; then
-            output_path=$OUTPUT_DIR
+            OUTPUT_PATH=$OUTPUT_DIR
         fi
-        encrypt_files $input_paths $output_path $wipe $yes
+        encrypt_files
         ;;
     "d")
         if [ input_flag -eq 0 ] || [ output_flag -eq 0 ]; then
             check_main_dir()
         fi
         if [ input_flag -eq 0 ]; then
-            input_paths=$(get_dir_elements "$INPUT_DIR")
+            INPUT_PATHS=$(get_dir_elements "$INPUT_DIR")
         fi
         if [ output_flag -eq 0 ]; then
-            output_path=$OUTPUT_DIR
+            OUTPUT_PATH=$OUTPUT_DIR
         fi
-        decrypt_files $input_paths $output_path $wipe $yes
+        decrypt_files
         ;;
     "c")
-        clean_main_dir $yes
+        clean_main_dir
+        ;;
 esac
 
 exit 0

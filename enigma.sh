@@ -14,9 +14,7 @@
 # ------------------------------------------------------------------
 
 # --- Notes --------------------------------------------------------
-# Add main dir check on start
-# Let -i recreate the script on use
-# Add -i -e -d functions
+# Add -e -d functions
 # Add debug and info logs
 # Test if get_dir_elements handles special characters in paths
 # ------------------------------------------------------------------
@@ -94,6 +92,16 @@ validate_dir() {
 	fi
 }
 
+dir_exists() {
+    dir_path="$1"
+	
+	if [ -d $dir_path ] ; then
+		return 1
+	else
+		return 0
+	fi
+}
+
 wipe_path() {
 	path="$1"
 	
@@ -109,6 +117,23 @@ get_dir_elements() {
     local elements
     mapfile -t elements < <(find "$dir_path" -maxdepth 1)
     echo "${elements[@]}"
+}
+
+main_dir_okay() {
+    if [ $(dir_exists "$MAIN_DIR") -eq 0 ]; then
+        return 0
+    fi
+    if [ $(dir_exists "$INPUT_DIR") -eq 0 ]; then
+        return 0
+    fi
+    if [ $(dir_exists "$OUTPUT_DIR") -eq 0 ]; then
+        return 0
+    fi
+    if [ $(dir_exists "$TEMP_DIR") -eq 0 ]; then
+        return 0
+    fi
+
+    return 1
 }
 
 check_error() {
@@ -160,7 +185,7 @@ show_logs() {
             fi
 
             exit 1
-        ;;
+            ;;
         "2")
             if [ $LOGGING_LEVEL -ge $msg_log_lvl ]; then
                 echo "${warning_prefix} ${msg}"
@@ -171,22 +196,43 @@ show_logs() {
                     exit 0
                 fi
             fi
-        ;;
+            ;;
         "3")
             if [ $LOGGING_LEVEL -ge $msg_log_lvl ]; then
                 echo "${info_prefix} ${msg}"
             fi
-        ;;
+            ;;
         "4")
             if [ $LOGGING_LEVEL -ge $msg_log_lvl ]; then
                 echo "${debug_prefix} ${msg}"
             fi
-        ;;
+            ;;
     esac
 }
 # ------------------------------------------------------------------
 
 # --- Main functions -----------------------------------------------
+init_main_dir() {
+    if [ $(dir_exists "$MAIN_DIR") -eq 0 ]; then
+        mkdir "$MAIN_DIR"
+        show_logs 3 "Created ${MAIN_DIR}"
+    fi
+    if [ $(dir_exists "$INPUT_DIR") -eq 0 ]; then
+        mkdir "$INPUT_DIR"
+        show_logs 3 "Created ${INPUT_DIR}"
+    fi
+    if [ $(dir_exists "$OUTPUT_DIR") -eq 0 ]; then
+        mkdir "$OUTPUT_DIR"
+        show_logs 3 "Created ${OUTPUT_DIR}"
+    fi
+    if [ $(dir_exists "$TEMP_DIR") -eq 0 ]; then
+        mkdir "$TEMP_DIR"
+        show_logs 3 "Created ${TEMP_DIR}"
+    fi
+
+    return 0
+}
+
 clean_main_dir() {
     paths=$(get_dir_elements "$MAIN_DIR")
 
@@ -311,6 +357,21 @@ touch $LOCK_FILE
 # -----------------------------------------------------------------
 
 # --- Body --------------------------------------------------------
+if [ "$main_param" == "e" ] || [ "$main_param" == "d" ]; then
+    if [ input_flag -eq 0 ] || [ output_flag -eq 0 ]; then
+        if [ $(main_dir_okay) -eq 0 ] {
+            show_logs 2 "Something's wrong with the main directory, the script shallst recover it."
+            recover_main_dir
+        }
+    fi
+    if [ input_flag -eq 0 ]; then
+        INPUT_PATHS=$(get_dir_elements "$INPUT_DIR")
+    fi
+    if [ output_flag -eq 0 ]; then
+        OUTPUT_PATH=$OUTPUT_DIR
+    fi
+fi
+
 case "$main_param" in
     "h")
         show_help_en
@@ -318,28 +379,14 @@ case "$main_param" in
     "v")
         echo "Version: ${VERSION}"
         ;;
+    "I")
+        init_main_dir
+        show_logs 3 "Everything went well, now thou canst put files inside \"input\" directory"
+        ;;
     "e")
-        if [ input_flag -eq 0 ] || [ output_flag -eq 0 ]; then
-            check_main_dir()
-        fi
-        if [ input_flag -eq 0 ]; then
-            INPUT_PATHS=$(get_dir_elements "$INPUT_DIR")
-        fi
-        if [ output_flag -eq 0 ]; then
-            OUTPUT_PATH=$OUTPUT_DIR
-        fi
         encrypt_files
         ;;
     "d")
-        if [ input_flag -eq 0 ] || [ output_flag -eq 0 ]; then
-            check_main_dir()
-        fi
-        if [ input_flag -eq 0 ]; then
-            INPUT_PATHS=$(get_dir_elements "$INPUT_DIR")
-        fi
-        if [ output_flag -eq 0 ]; then
-            OUTPUT_PATH=$OUTPUT_DIR
-        fi
         decrypt_files
         ;;
     "c")

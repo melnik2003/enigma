@@ -17,6 +17,7 @@
 # Add -e -d functions
 # Add debug and info logs
 # Test if get_dir_elements handles special characters in paths
+# Add variable and option to change .dat ext
 # ------------------------------------------------------------------
 
 # --- Global -------------------------------------------------------
@@ -63,7 +64,7 @@ show_help_en() {
     echo "                  To use with several files and directories, thou shallst use it with -i <path> for each path"
     echo "-o <dir_path>     Specify the output directory"
     echo "-w                Wipe files sparingly"
-    echo "                  When the archives art decrypted, normal deletion doth take place, lest drive resources be wasted."
+    echo "                  Normal rm deletion doth take place, lest drive resources be wasted."
     echo "-W                Wipe files thoroughly"
     echo "                  *Full and complete wiping of all non-output files, without any opportunity for restoration"
     echo "-y                Skip all warnings"
@@ -304,6 +305,37 @@ encrypt_files() {
            wipe_path "$input_element"
         done
     fi
+
+    return 0
+}
+
+decrypt_files() {
+    for input_element in "${INPUT_PATHS[@]}"; do
+        local filename=$(basename "$input_element" .dat)
+
+        local path_to_tar="${TEMP_DIR}/${filename}.tar.gz"
+        gpg -o $path_to_tar -d $input_element
+
+        local path_to_output="${OUTPUT_DIR}/${filename}"
+        tar -xzf $path_to_tar -C $path_to_output
+        chown -R "$USERNAME" "$path_to_output"
+
+        case "$WIPE" in
+            "none")
+                continue
+                ;;
+            "spare")
+                sudo rm -rf "$input_element"
+                sudo rm -rf "$path_to_tar"
+                ;;
+            "complete")
+                wipe_path "$input_element"
+                wipe_path "$path_to_tar"
+                ;;
+        esac
+    done
+
+    return 0
 }
 # ------------------------------------------------------------------
 

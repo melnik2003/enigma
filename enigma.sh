@@ -293,9 +293,8 @@ encrypt_files() {
     local path_to_hidden="${new_dir}.dat"
     mv $path_to_gpg $path_to_hidden
 
-    mv -t "$OUTPUT_DIR" "$path_to_hidden"
-
     chown -R "$USERNAME" "$path_to_hidden"
+    mv -t "$OUTPUT_DIR" "$path_to_hidden"
 
     wipe_path $new_dir
     wipe_path $path_to_tar

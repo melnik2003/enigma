@@ -40,7 +40,7 @@ LOGGING_LEVEL=3
 
 # --- Utils --------------------------------------------------------
 show_help_en() {
-    echo "Usage: . ./$0.sh [-param <value>]"
+    echo "Usage: . $0 [-param <value>]"
     echo ""
     echo "Main params:"
     echo "-I                Init the main directory"
@@ -62,14 +62,20 @@ show_help_en() {
     echo ""
     echo "Additional params:"
     echo "-u                Set the name of a user that shallst claim the ownership of an archive"
+    echo ""
     echo "-l                Choose logging level (1 - errors, 2 - warnings, 3 - info, 4 - debug)"
+    echo ""
     echo "-i <path>         Specify a path for an input file or directory"
     echo "                  To use with several files and directories, thou shallst use it with -i <path> for each path"
+    echo ""
     echo "-o <dir_path>     Specify the output directory"
+    echo ""
     echo "-w                Wipe files sparingly"
     echo "                  Normal rm deletion doth take place, lest drive resources be wasted."
+    echo ""
     echo "-W                Wipe files thoroughly"
     echo "                  *Full and complete wiping of all non-output files, without any opportunity for restoration"
+    echo ""
     echo "-y                Skip all warnings"
 }
 

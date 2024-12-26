@@ -43,11 +43,11 @@ show_help_en() {
     echo "Usage: . $0 [-param <value>]"
     echo ""
     echo "Main params:"
-    echo "-I                Init the main directory"
-    echo "                  Use on the first launch"
+    echo "-I            Init the main directory"
+    echo "              Use on the first launch"
     echo ""
-    echo "-e                Encrypt the contents of input to output"
-    echo "                  Use with -u to specify the owner of the archive"
+    echo "-e            Encrypt the contents of input to output"
+    echo "              Use with -u to specify the owner of the archive"
     echo "                  Use with -i -o to specify input files and an output directory"
     echo "                  Use with -w -W to wipe input files and -y to skip warnings"
     echo ""
@@ -88,65 +88,55 @@ show_main_dir() {
 validate_path() {
     path="$1"
 	
-	if [ -e $path ]; then
-		return 0
-	else
+	if [ ! -e $path ]; then
 		show_logs 1 "noPath" "$path"
 	fi
+
+    show_logs 4 "${path} is a valid path"
 }
 
 validate_dir() {
-    dir_path="$1"
+    path="$1"
 	
-	if [ -d $dir_path ] ; then
-		return 0
-	else
-		show_logs 1 "noDir" "$dir_path"
+	if [ ! -d $path ] ; then
+		show_logs 1 "noDir" "$path"
 	fi
+
+    show_logs 4 "${path} is a valid file"
 }
 
 validate_file() {
-    file_path="$1"
+    path="$1"
 	
-	if [ -f $dir_path ] ; then
-		return 0
-	else
-		show_logs 1 "noFile" "$dir_path"
+	if [ ! -f $path ] ; then
+		show_logs 1 "noFile" "$path"
 	fi
+
+    show_logs 4 "${path} is a valid file"
 }
 
 wipe_path() {
 	path="$1"
-	
     validate_path "$path"
+    show_logs 4 "Wiping path: ${path}"
     sudo wipe -rf $path
-
-    return 0
 }
 
 get_dir_elements() {
     dir_path="$1"
     validate_dir "$dir_path"
+    show_logs 4 "Getting elements of a dir: ${dir_path}"
     local elements
     mapfile -t elements < <(find "$dir_path" -maxdepth 1)
     echo "${elements[@]}"
 }
 
-main_dir_okay() {
-    if [ ! -d "$MAIN_DIR" ]; then
-        return 0
+validate_main_dir_struct() {
+    if [ -d "$MAIN_DIR" ] && [ -d "$INPUT_DIR" ] && [ -d "$OUTPUT_DIR" ]&& [ -d "$TEMP_DIR" ]; then
+        show_logs 4 "Main dir is okay"
+    else
+        show_logs 1 "Something is wrong with the main dir structure"
     fi
-    if [ ! -d "$INPUT_DIR" ]; then
-        return 0
-    fi
-    if [ ! -d "$OUTPUT_DIR" ]; then
-        return 0
-    fi
-    if [ ! -d "$TEMP_DIR" ]; then
-        return 0
-    fi
-
-    return 1
 }
 
 generate_name() {
@@ -196,7 +186,7 @@ show_logs() {
         "1")
             if [ $LOGGING_LEVEL -ge $msg_log_lvl ]; then
                 msg=$(check_error "$msg" "$obj")
-                echo -e "${error_prefix} ${msg}" >&2
+                echo -e "${error_prefix} ${msg}"
             fi
 
             exit 1
@@ -244,8 +234,6 @@ init_main_dir() {
         mkdir "$TEMP_DIR"
         show_logs 3 "Created ${TEMP_DIR}"
     fi
-
-    return 0
 }
 
 clean_main_dir() {
@@ -304,8 +292,6 @@ clean_main_dir() {
         done
 
     fi
-
-    return 0
 }
 
 encrypt_files() {
@@ -359,8 +345,6 @@ encrypt_files() {
                 wipe_path "$input_element"
             done
     esac
-
-    return 0
 }
 
 decrypt_files() {
@@ -396,8 +380,6 @@ decrypt_files() {
                 ;;
         esac
     done
-
-    return 0
 }
 # ------------------------------------------------------------------
 
@@ -412,7 +394,7 @@ if [ $LOGGING_LEVEL -eq 4 ]; then
     show_main_dir
 fi
 
-declare -a main_params=("h" "v" "I" "e" "d" "c")
+main_params=("h" "v" "I" "e" "d" "c")
 
 main_param=""
 
@@ -491,6 +473,8 @@ do
 done
 
 shift $(($OPTIND - 1))
+
+show_logs 4 "Parameters parsed. The main param: ${main_param}"
 # -----------------------------------------------------------------
 
 # --- Locks -------------------------------------------------------
@@ -504,13 +488,9 @@ touch $LOCK_FILE
 # -----------------------------------------------------------------
 
 # --- Body --------------------------------------------------------
-
 if [ "$main_param" == "e" ] || [ "$main_param" == "d" ]; then
     if [ INPUT_FLAG -eq 0 ] || [ OUTPUT_FLAG -eq 0 ]; then
-        if [ $(main_dir_okay) -eq 0 ]; then
-            show_logs 2 "Something's wrong with the main directory, the script shallst recover it."
-            init_main_dir
-        fi
+        validate_main_dir_struct
     fi
     if [ INPUT_FLAG -eq 0 ]; then
         INPUT_PATHS=$(get_dir_elements "$INPUT_DIR")
@@ -542,7 +522,7 @@ case "$main_param" in
         ;;
     "I")
         if [ "$EUID" -eq 0 ]; then
-            show_logs 1 "Use without sudo"
+            show_logs 2 "I recommend using it with regular user rights (without sudo)"
         fi
         init_main_dir
         show_logs 3 "Everything went well, now thou canst put files inside the \"input\" directory"
@@ -563,6 +543,7 @@ case "$main_param" in
         if [ "$EUID" -ne 0 ]; then
             show_logs 1 "Use with sudo"
         fi
+        validate_main_dir_struct
         clean_main_dir
         ;;
 esac

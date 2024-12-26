@@ -147,6 +147,7 @@ generate_name() {
 check_error() {
     error="$1"
     obj="$2"
+    local msg=""
 
     case "$error" in
         "mainParam")
@@ -433,7 +434,9 @@ do
             ;;
         "l")
             if [[ "$OPTARG" =~ ^-?[0-9]+$ ]]; then
+                show_logs 4 "OPTARG is numbers"
                 if (( OPTARG >= 1 && OPTARG <= 4 )); then
+                    show_logs 4 "OPTARG is in the range"
                     LOGGING_LEVEL=$OPTARG
                     continue
                 fi

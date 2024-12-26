@@ -295,17 +295,35 @@ encrypt_files() {
     local path_to_hidden="${new_dir}.dat"
     mv $path_to_gpg $path_to_hidden
 
-    chown -R "$USERNAME" "$path_to_hidden"
+    if [ ! "$USERNAME" == "" ]; then
+        chown -R "$USERNAME" "$path_to_hidden"
+    fi
+
     mv -t "$OUTPUT_DIR" "$path_to_hidden"
 
-    wipe_path $new_dir
-    wipe_path $path_to_tar
-
-    if [ ! "$WIPE" == "none" ]; then
-        for input_element in "${INPUT_PATHS[@]}"; do
-           wipe_path "$input_element"
-        done
+    if [ ! $WIPE == "none" ] && [ ! "$YES" -eq 0 ]; then
+        show_logs 2 "Input files are going to be deleted"
     fi
+
+    case $WIPE in
+        "none")
+            sudo rm -rf $new_dir
+            sudo rm -rf $path_to_tar
+            ;;
+        "spare")
+            sudo rm -rf $new_dir
+            sudo rm -rf $path_to_tar
+            for input_element in "${INPUT_PATHS[@]}"; do
+                rm -rf "$input_element"
+            done
+            ;;
+        "complete")
+            wipe_path $new_dir
+            wipe_path $path_to_tar
+            for input_element in "${INPUT_PATHS[@]}"; do
+                wipe_path "$input_element"
+            done
+    esac
 
     return 0
 }
@@ -319,10 +337,18 @@ decrypt_files() {
 
         local path_to_output="${OUTPUT_DIR}/${filename}"
         tar -xzf $path_to_tar -C $path_to_output
-        chown -R "$USERNAME" "$path_to_output"
+
+        if [ ! "$USERNAME" == "" ]; then
+            chown -R "$USERNAME" "$path_to_output"
+        fi
+
+        if [ ! $WIPE == "none" ] && [ ! "$YES" -eq 0 ]; then
+            show_logs 2 "Input files are going to be deleted"
+        fi
 
         case "$WIPE" in
             "none")
+                sudo rm -rf "$path_to_tar"
                 continue
                 ;;
             "spare")

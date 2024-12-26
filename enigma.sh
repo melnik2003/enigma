@@ -61,7 +61,7 @@ show_help_en() {
     echo "-v                Print the script version"
     echo ""
     echo "Additional params:"
-    echo "-u                Set the name of a user that shallst claim the ownership of an archive"
+    echo "-u                Set the name of a user that shall claim the ownership of the archive"
     echo ""
     echo "-l                Choose logging level (1 - errors, 2 - warnings, 3 - info, 4 - debug)"
     echo ""
@@ -140,6 +140,7 @@ validate_main_dir_struct() {
 }
 
 generate_name() {
+    show_logs 4 "Generating name..."
     length=16
     cat /dev/urandom | tr -dc 'A-Za-z0-9' | head -c $length
 }
@@ -197,7 +198,9 @@ show_logs() {
                 echo -e "${warning_prefix} ${msg}"
                 read -p "Dost thou wish to continue? (y/n): " answer
 
+
                 if [ "$answer" == "y" ] || [ "$answer" == "Y" ]; then
+                    show_logs 4 "You've been warned..."
                     return
                 else
                     show_logs 3 "Closing script..."
@@ -240,7 +243,8 @@ init_main_dir() {
 }
 
 clean_main_dir() {
-    local paths=$(get_dir_elements "$MAIN_DIR")
+    declare -a paths
+    paths=$(get_dir_elements "$MAIN_DIR")
 
     if [ $YES -eq 0 ]; then
         show_logs 2 "The script shallst delete all from the main directory."

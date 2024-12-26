@@ -197,7 +197,9 @@ show_logs() {
                 echo -e "${warning_prefix} ${msg}"
                 read -p "Dost thou wish to continue? (y/n): " answer
 
-                if [ ! "$answer" == "y" ] || [ ! "$answer" == "Y" ]; then
+                if [ "$answer" == "y" ] || [ "$answer" == "Y" ]; then
+                    return
+                else
                     show_logs 3 "Closing script..."
                     exit 0
                 fi

@@ -125,7 +125,6 @@ wipe_path() {
 get_dir_elements() {
     dir_path="$1"
     validate_dir "$dir_path"
-    show_logs 4 "Getting elements of a dir: ${dir_path}"
     local elements
     mapfile -t elements < <(find "$dir_path" -maxdepth 1)
     echo "${elements[@]}"
@@ -140,7 +139,6 @@ validate_main_dir_struct() {
 }
 
 generate_name() {
-    show_logs 4 "Generating name..."
     length=16
     cat /dev/urandom | tr -dc 'A-Za-z0-9' | head -c $length
 }

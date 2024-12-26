@@ -427,7 +427,7 @@ OUTPUT_FLAG=0
 while getopts ":hvIedcu:l:i:o:wWy" param
 do
     if [[ " ${main_params[@]} " =~ "$param" ]]; then
-        if [ $main_param == "" ]; then
+        if [ "$main_param" == "" ]; then
             main_param="$param"
         else
             show_logs 1 "mainParam"

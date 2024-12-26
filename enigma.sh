@@ -477,6 +477,9 @@ done
 
 shift $(($OPTIND - 1))
 
+if [ "$main_param" == "" ]; then
+    show_logs 1 "Choose the main param"
+fi
 show_logs 4 "Parameters parsed. The main param: ${main_param}"
 # -----------------------------------------------------------------
 

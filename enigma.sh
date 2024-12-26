@@ -275,7 +275,7 @@ clean_main_dir() {
     else
 
         for path in "${paths[@]}"; do
-            if [[ " ${MAIN_SUBDIRS[@]} " =~ "$path" ]]
+            if [[ " ${MAIN_SUBDIRS[@]} " =~ "$path" ]]; then
                 continue
             else
                 sudo rm -rf "$path"

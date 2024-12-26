@@ -19,6 +19,7 @@
 # Test if get_dir_elements handles special characters in paths
 # Add variable and option to change .dat ext
 # Test all other stuff
+# Add rm -rf to a separate function and add path_check to it like with wipe
 # ------------------------------------------------------------------
 
 # --- Global -------------------------------------------------------
@@ -46,11 +47,12 @@ show_help_en() {
     echo "                  Use on the first launch"
     echo ""
     echo "-e                Encrypt the contents of input to output"
+    echo "                  Use with -u to specify the owner of the archive"
     echo "                  Use with -i -o to specify input files and an output directory"
     echo "                  Use with -w -W to wipe input files and -y to skip warnings"
     echo ""
     echo "-d                Decrypt the contents of input to output"
-    echo "                  Thou can use it with -u -i -o -w -W -y the same as -e"
+    echo "                  Thou canst use it with -u -i -o -w -W -y the same"
     echo ""
     echo "-c                Clean the main directory"
     echo "                  Use with -W for thorough* cleaning"
@@ -247,28 +249,57 @@ clean_main_dir() {
         show_logs 2 "The script shallst delete all from the main directory."
     fi
 
-    for path in "${paths[@]}"; do
-        if [[ " ${MAIN_SUBDIRS[@]} " =~ "$path" ]]
-            continue
-        else
+    if [ "$WIPE" == "complete" ]
+
+        for path in "${paths[@]}"; do
+            if [[ " ${MAIN_SUBDIRS[@]} " =~ "$path" ]]
+                continue
+            else
+                wipe_path "$path"
+            fi
+        done
+        
+        paths=$(get_dir_elements "$INPUT_DIR")
+        for path in "${paths[@]}"; do
             wipe_path "$path"
-        fi
-    done
-    
-    paths=$(get_dir_elements "$INPUT_DIR")
-    for path in "${paths[@]}"; do
-        wipe_path "$path"
-    done
+        done
 
-    paths=$(get_dir_elements "$OUTPUT_DIR")
-    for path in "${paths[@]}"; do
-        wipe_path "$path"
-    done
+        paths=$(get_dir_elements "$OUTPUT_DIR")
+        for path in "${paths[@]}"; do
+            wipe_path "$path"
+        done
 
-    paths=$(get_dir_elements "$TEMP_DIR")
-    for path in "${paths[@]}"; do
-        wipe_path "$path"
-    done
+        paths=$(get_dir_elements "$TEMP_DIR")
+        for path in "${paths[@]}"; do
+            wipe_path "$path"
+        done
+
+    else
+
+        for path in "${paths[@]}"; do
+            if [[ " ${MAIN_SUBDIRS[@]} " =~ "$path" ]]
+                continue
+            else
+                sudo rm -rf "$path"
+            fi
+        done
+        
+        paths=$(get_dir_elements "$INPUT_DIR")
+        for path in "${paths[@]}"; do
+            sudo rm -rf "$path"
+        done
+
+        paths=$(get_dir_elements "$OUTPUT_DIR")
+        for path in "${paths[@]}"; do
+            sudo rm -rf "$path"
+        done
+
+        paths=$(get_dir_elements "$TEMP_DIR")
+        for path in "${paths[@]}"; do
+            sudo rm -rf "$path"
+        done
+
+    fi
 
     return 0
 }

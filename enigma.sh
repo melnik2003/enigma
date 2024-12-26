@@ -252,9 +252,7 @@ clean_main_dir() {
     if [ "$WIPE" == "complete" ]
 
         for path in "${paths[@]}"; do
-            if [[ " ${MAIN_SUBDIRS[@]} " =~ "$path" ]]
-                continue
-            else
+            if [[ ! " ${MAIN_SUBDIRS[@]} " =~ "$path" ]]
                 wipe_path "$path"
             fi
         done

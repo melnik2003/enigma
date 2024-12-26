@@ -186,7 +186,7 @@ show_logs() {
     case $msg_log_lvl in
         "1")
             if [ $LOGGING_LEVEL -ge $msg_log_lvl ]; then
-                msg=$(check_error "$msg" "$obj")
+                msg="$(check_error "$msg" "$obj")"
                 echo -e "${error_prefix} ${msg}"
             fi
 

@@ -249,7 +249,7 @@ clean_main_dir() {
         show_logs 2 "The script shallst delete all from the main directory."
     fi
 
-    if [ "$WIPE" == "complete" ]
+    if [ "$WIPE" == "complete" ]; then
 
         for path in "${paths[@]}"; do
             if [[ ! " ${MAIN_SUBDIRS[@]} " =~ "$path" ]]

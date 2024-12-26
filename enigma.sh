@@ -416,7 +416,7 @@ declare -a main_params=("h" "v" "I" "e" "d" "c")
 
 main_param=""
 
-declare -a INPUT_PATHS()
+declare -a INPUT_PATHS
 OUTPUT_PATH="$OUTPUT_DIR"
 WIPE="none"
 YES=0

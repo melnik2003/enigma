@@ -196,14 +196,14 @@ show_logs() {
         "1")
             if [ $LOGGING_LEVEL -ge $msg_log_lvl ]; then
                 msg=$(check_error "$msg" "$obj")
-                echo "${error_prefix} ${msg}" >&2
+                echo -e "${error_prefix} ${msg}" >&2
             fi
 
             exit 1
             ;;
         "2")
             if [ $LOGGING_LEVEL -ge $msg_log_lvl ]; then
-                echo "${warning_prefix} ${msg}"
+                echo -e "${warning_prefix} ${msg}"
                 read -p "Dost thou wish to continue? (y/n): " answer
 
                 if [ ! "$answer" == "y" ] || [ ! "$answer" == "Y" ]; then
@@ -214,12 +214,12 @@ show_logs() {
             ;;
         "3")
             if [ $LOGGING_LEVEL -ge $msg_log_lvl ]; then
-                echo "${info_prefix} ${msg}"
+                echo -e "${info_prefix} ${msg}"
             fi
             ;;
         "4")
             if [ $LOGGING_LEVEL -ge $msg_log_lvl ]; then
-                echo "${debug_prefix} ${msg}"
+                echo -e "${debug_prefix} ${msg}"
             fi
             ;;
     esac

@@ -435,12 +435,12 @@ do
     fi
 
     case "$param" in
-        "h") pass ;;
-        "v") pass ;;
-        "I") pass ;;
-        "e") pass ;;
-        "d") pass ;;
-        "c") pass ;;
+        "h") ;;
+        "v") ;;
+        "I") ;;
+        "e") ;;
+        "d") ;;
+        "c") ;;
 
         "u")
             if getent passwd "$OPTARG" > /dev/null 2>&1; then
@@ -507,10 +507,10 @@ touch $LOCK_FILE
 
 if [ "$main_param" == "e" ] || [ "$main_param" == "d" ]; then
     if [ INPUT_FLAG -eq 0 ] || [ OUTPUT_FLAG -eq 0 ]; then
-        if [ $(main_dir_okay) -eq 0 ] {
+        if [ $(main_dir_okay) -eq 0 ]; then
             show_logs 2 "Something's wrong with the main directory, the script shallst recover it."
             init_main_dir
-        }
+        fi
     fi
     if [ INPUT_FLAG -eq 0 ]; then
         INPUT_PATHS=$(get_dir_elements "$INPUT_DIR")

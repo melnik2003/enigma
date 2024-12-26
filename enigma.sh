@@ -170,7 +170,7 @@ check_error() {
             ;;
     esac
 
-    return "$msg"
+    echo "$msg"
 }
 
 show_logs() {

@@ -118,7 +118,7 @@ validate_file() {
 wipe_path() {
 	path="$1"
     validate_path "$path"
-    show_logs 4 "Wiping path: ${path}"
+    show_logs 2 "Wiping path: ${path}"
     sudo wipe -rf $path
 }
 
@@ -434,9 +434,7 @@ do
             ;;
         "l")
             if [[ "$OPTARG" =~ ^-?[0-9]+$ ]]; then
-                show_logs 4 "OPTARG is numbers"
                 if (( OPTARG >= 1 && OPTARG <= 4 )); then
-                    show_logs 4 "OPTARG is in the range"
                     LOGGING_LEVEL=$OPTARG
                     continue
                 fi

@@ -277,7 +277,7 @@ clean_main_dir() {
 
         for path in "${paths[@]}"; do
             show_logs 4 "Checking path ${path}"
-            if [[ " ${MAIN_SUBDIRS[@]} " =~ "$path" ]]; then
+            if [ ! "${MAIN_SUBDIRS[@]}" == "$path" ]; then
                 show_logs 4 "Removing path: ${path}"
                 sudo rm -rf "$path"
             fi

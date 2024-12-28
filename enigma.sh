@@ -121,7 +121,7 @@ get_dir_elements() {
     local dir_path="$1"
     validate_dir "$dir_path"
     local elements
-    mapfile -t elements < <(find "$dir_path" -maxdepth 1)
+    mapfile -t elements < <(find "$dir_path" -maxdepth 1 -mindepth 1)
     echo "${elements[@]}"
 }
 

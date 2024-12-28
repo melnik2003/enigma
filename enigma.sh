@@ -315,24 +315,36 @@ encrypt_files() {
         done
     fi
 
+    show_logs 2 "Checkpoint 1" 
+
     local path_to_tar="${new_dir}.tar.gz"
     tar -czf "$path_to_tar" "$new_dir"
+
+    show_logs 2 "Checkpoint 2" 
 
     local path_to_gpg="${path_to_tar}.gpg"
     gpg -o $path_to_gpg -c --no-symkey-cache --cipher-algo AES256 $path_to_tar
 
+    show_logs 2 "Checkpoint 3" 
+
     local path_to_hidden="${new_dir}.dat"
     mv $path_to_gpg $path_to_hidden
+
+    show_logs 2 "Checkpoint 4" 
 
     if [ ! "$USERNAME" == "" ]; then
         chown -R "$USERNAME" "$path_to_hidden"
     fi
+
+    show_logs 2 "Checkpoint 5" 
 
     mv -t "$OUTPUT_DIR" "$path_to_hidden"
 
     if [ ! $WIPE == "none" ] && [ ! "$YES" -eq 0 ]; then
         show_logs 2 "Input files are going to be deleted"
     fi
+
+    show_logs 2 "Checkpoint 6" 
 
     case $WIPE in
         "none")

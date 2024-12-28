@@ -33,7 +33,7 @@ INPUT_DIR="${MAIN_DIR}/input"
 OUTPUT_DIR="${MAIN_DIR}/output"
 TEMP_DIR="${MAIN_DIR}/temp"
 
-MAIN_SUBDIRS=("input", "output", "temp")
+MAIN_SUBDIRS=("input" "output" "temp")
 
 # Global logging level (1 - errors, 2 - warnings, 3 - info, 4 - debug)
 LOGGING_LEVEL=3

@@ -254,7 +254,7 @@ clean_main_dir() {
 
     show_logs 4 "WIPE var is: ${WIPE}"
 
-    local found=0
+    local skip_dir=0
     declare -a paths
     readarray -t paths < <(get_dir_elements "$MAIN_DIR")
 
@@ -264,7 +264,7 @@ clean_main_dir() {
             skip_dir=0
             for item in "${MAIN_SUBDIRS[@]}"; do
                 local dir_basename="$(basename "$path")"
-                show_logs 4 "Comparing main subdir ${item} with ${dir_basename}"
+                show_logs 4 "Comparing main subdir ${item} to ${dir_basename}"
                 if [[ "$item" == "$dir_basename" ]]; then
                     show_logs 4 "Skipping path: ${path}"
                     skip_dir=1

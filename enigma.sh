@@ -92,8 +92,6 @@ validate_path() {
 	if [ ! -e $path ]; then
 		show_logs 1 "noPath" "$path"
 	fi
-
-    show_logs 4 "${path} is a valid path"
 }
 
 validate_dir() {
@@ -102,8 +100,6 @@ validate_dir() {
 	if [ ! -d $path ] ; then
 		show_logs 1 "noDir" "$path"
 	fi
-
-    show_logs 4 "${path} is a valid file"
 }
 
 validate_file() {
@@ -112,8 +108,6 @@ validate_file() {
 	if [ ! -f $path ] ; then
 		show_logs 1 "noFile" "$path"
 	fi
-
-    show_logs 4 "${path} is a valid file"
 }
 
 wipe_path() {

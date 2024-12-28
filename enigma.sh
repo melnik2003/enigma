@@ -258,9 +258,11 @@ clean_main_dir() {
     readarray -t paths < <(get_dir_elements "$MAIN_DIR")
 
     for path in "${paths[@]}"; do
-        show_logs 4 "Checking path ${path}"
+        show_logs 4 "Checking MAIN_DIR element: ${path}"
         for item in "${MAIN_SUBDIRS[@]}"; do
-            if [[ "$item" == "$path" ]]; then
+            local dir_basename="$(basename "$path")"
+            show_logs 4 "Comparing main subdir ${item} with ${dir_basename}"
+            if [[ "$item" == "$dir_basename" ]]; then
                 show_logs 4 "Skipping path: ${path}"
                 break
             fi
@@ -270,19 +272,19 @@ clean_main_dir() {
     
     readarray -t paths < <(get_dir_elements "$INPUT_DIR")
     for path in "${paths[@]}"; do
-        show_logs 4 "Checking path ${path}"
+        show_logs 4 "Checking INPUT_DIR element: ${path}"
         clean_path "$path"
     done
 
     readarray -t paths < <(get_dir_elements "$OUTPUT_DIR")
     for path in "${paths[@]}"; do
-        show_logs 4 "Checking path ${path}"
+        show_logs 4 "Checking OUTPUT_DIR element: ${path}"
         clean_path "$path"
     done
 
     readarray -t paths < <(get_dir_elements "$TEMP_DIR")
     for path in "${paths[@]}"; do
-        show_logs 4 "Checking path ${path}"
+        show_logs 4 "Checking TEMP_DIR element ${path}"
         clean_path "$path"
     done
 }

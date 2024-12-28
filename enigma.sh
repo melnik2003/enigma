@@ -189,7 +189,7 @@ show_logs() {
         "2")
             if [ $LOGGING_LEVEL -ge $msg_log_lvl ]; then
                 echo "${warning_prefix} ${msg}"
-                read -p "${warning_prefix} Dost thou wish to continue? (y/n): " answer
+                read -p "${warning_prefix} Do you wish to continue? (y/n): " answer
 
 
                 if [ "$answer" == "y" ] || [ "$answer" == "Y" ]; then
@@ -249,7 +249,7 @@ clean_path() {
 
 clean_main_dir() {
     if [ $YES -eq 0 ]; then
-        show_logs 2 "The script shallst delete all from the main directory."
+        show_logs 2 "The script shall delete all from the main directory."
     fi
 
     show_logs 4 "WIPE var is: ${WIPE}"
@@ -259,38 +259,46 @@ clean_main_dir() {
     readarray -t paths < <(get_dir_elements "$MAIN_DIR")
 
     for path in "${paths[@]}"; do
-        show_logs 4 "Checking MAIN_DIR element: ${path}"
-        skip_dir=0
-        for item in "${MAIN_SUBDIRS[@]}"; do
-            local dir_basename="$(basename "$path")"
-            show_logs 4 "Comparing main subdir ${item} with ${dir_basename}"
-            if [[ "$item" == "$dir_basename" ]]; then
-                show_logs 4 "Skipping path: ${path}"
-                skip_dir=1
-                break
+        if [[ -n "$path" ]]; then
+            show_logs 4 "Checking MAIN_DIR element: ${path}"
+            skip_dir=0
+            for item in "${MAIN_SUBDIRS[@]}"; do
+                local dir_basename="$(basename "$path")"
+                show_logs 4 "Comparing main subdir ${item} with ${dir_basename}"
+                if [[ "$item" == "$dir_basename" ]]; then
+                    show_logs 4 "Skipping path: ${path}"
+                    skip_dir=1
+                    break
+                fi
+            done
+            if [ $skip_dir -eq 0 ]; then
+                clean_path "$path"
             fi
-        done
-        if [ $skip_dir -eq 0 ]; then
-            clean_path "$path"
         fi
     done
     
     readarray -t paths < <(get_dir_elements "$INPUT_DIR")
     for path in "${paths[@]}"; do
-        show_logs 4 "Checking INPUT_DIR element: ${path}"
-        clean_path "$path"
+        if [[ -n "$path" ]]; then
+            show_logs 4 "Checking INPUT_DIR element: ${path}"
+            clean_path "$path"
+        fi
     done
 
     readarray -t paths < <(get_dir_elements "$OUTPUT_DIR")
     for path in "${paths[@]}"; do
-        show_logs 4 "Checking OUTPUT_DIR element: ${path}"
-        clean_path "$path"
+        if [[ -n "$path" ]]; then
+            show_logs 4 "Checking OUTPUT_DIR element: ${path}"
+            clean_path "$path"
+        fi
     done
 
     readarray -t paths < <(get_dir_elements "$TEMP_DIR")
     for path in "${paths[@]}"; do
-        show_logs 4 "Checking TEMP_DIR element ${path}"
-        clean_path "$path"
+        if [[ -n "$path" ]]; then
+            show_logs 4 "Checking TEMP_DIR element ${path}"
+            clean_path "$path"
+        fi
     done
 }
 

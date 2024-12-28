@@ -118,7 +118,7 @@ wipe_path() {
 }
 
 get_dir_elements() {
-    dir_path="$1"
+    local dir_path="$1"
     validate_dir "$dir_path"
     local elements
     mapfile -t elements < <(find "$dir_path" -maxdepth 1)
@@ -235,77 +235,56 @@ init_main_dir() {
     fi
 }
 
-clean_main_dir() {
-    declare -a paths
-    paths=$(get_dir_elements "$MAIN_DIR")
+clean_path() {
+    local path="$1"
 
+    show_logs 4 "Cleaning path: ${path}"
+
+    if [ "$WIPE" == "complete" ]; then
+        sudo wipe -rf "$path"
+    else
+        sudo rm -rf "$path"
+    fi
+}
+
+clean_main_dir() {
     if [ $YES -eq 0 ]; then
         show_logs 2 "The script shallst delete all from the main directory."
     fi
 
     show_logs 4 "WIPE var is: ${WIPE}"
 
-    if [ "$WIPE" == "complete" ]; then
+    declare -a paths
+    readarray -t paths < <(get_dir_elements "$MAIN_DIR")
 
-        for path in "${paths[@]}"; do
-            show_logs 4 "Checking path: ${path}"
-            if [[ " ${MAIN_SUBDIRS[@]} " =~ "$path" ]]; then
-            show_logs 4 "Removing path: ${path}"
-                wipe_path "$path"
+    for path in "${paths[@]}"; do
+        show_logs 4 "Checking path ${path}"
+        for item in "${MAIN_SUBDIRS[@]}"; do
+            if [[ "$item" == "$path" ]]; then
+                show_logs 4 "Skipping path: ${path}"
+                break
             fi
         done
-        
-        paths=$(get_dir_elements "$INPUT_DIR")
-        for path in "${paths[@]}"; do
-            show_logs 4 "Checking path ${path}"
-            wipe_path "$path"
-        done
+        clean_path "$path"
+    done
+    
+    readarray -t paths < <(get_dir_elements "$INPUT_DIR")
+    for path in "${paths[@]}"; do
+        show_logs 4 "Checking path ${path}"
+        clean_path "$path"
+    done
 
-        paths=$(get_dir_elements "$OUTPUT_DIR")
-        for path in "${paths[@]}"; do
-            show_logs 4 "Checking path ${path}"
-            wipe_path "$path"
-        done
+    readarray -t paths < <(get_dir_elements "$OUTPUT_DIR")
+    for path in "${paths[@]}"; do
+        show_logs 4 "Checking path ${path}"
+        clean_path "$path"
+    done
 
-        paths=$(get_dir_elements "$TEMP_DIR")
-        for path in "${paths[@]}"; do
-            show_logs 4 "Checking path ${path}"
-            wipe_path "$path"
-        done
-
-    else
-
-        for path in "${paths[@]}"; do
-            show_logs 4 "Checking path ${path}"
-            for item in "${MAIN_SUBDIRS[@]}"; do
-                if [[ "$item" == "$path" ]]; then
-                    show_logs 4 "Skipping path: ${path}"
-                    break
-                fi
-            done
-            show_logs 4 "Removing path: ${path}"
-            sudo rm -rf "$path"
-        done
-        
-        paths=$(get_dir_elements "$INPUT_DIR")
-        for path in "${paths[@]}"; do
-            show_logs 4 "Checking path ${path}"
-            sudo rm -rf "$path"
-        done
-
-        paths=$(get_dir_elements "$OUTPUT_DIR")
-        for path in "${paths[@]}"; do
-            show_logs 4 "Checking path ${path}"
-            sudo rm -rf "$path"
-        done
-
-        paths=$(get_dir_elements "$TEMP_DIR")
-        for path in "${paths[@]}"; do
-            show_logs 4 "Checking path ${path}"
-            sudo rm -rf "$path"
-        done
-
-    fi
+    readarray -t paths < <(get_dir_elements "$TEMP_DIR")
+    for path in "${paths[@]}"; do
+        show_logs 4 "Checking path ${path}"
+        clean_path "$path"
+    done
 }
 
 encrypt_files() {

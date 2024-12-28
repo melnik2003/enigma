@@ -352,6 +352,7 @@ decrypt_files() {
         tree
 
         path_to_output="${OUTPUT_DIR}"
+        show_logs 4 "Running tar -xzf ${path_to_tar} -C ${path_to_output}"
         tar -xzf $path_to_tar -C $path_to_output
 
         tree

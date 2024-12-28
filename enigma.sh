@@ -171,7 +171,7 @@ show_logs() {
     error_prefix="\e[31m[ERROR]\e[0m"
     warning_prefix="\e[33m[WARNING]\e[0m"
     info_prefix="\e[32m[INFO]\e[0m"
-    debug_prefix="\e[34m[DEBUG]\e[0m"
+    debug_prefix="\e[96m[DEBUG]\e[0m"
 
     msg_log_lvl=$1
     msg="$2"
@@ -189,7 +189,7 @@ show_logs() {
         "2")
             if [ $LOGGING_LEVEL -ge $msg_log_lvl ]; then
                 echo -e "${warning_prefix} ${msg}"
-                read -p "Dost thou wish to continue? (y/n): " answer
+                read -p "${warning_prefix} Dost thou wish to continue? (y/n): " answer
 
 
                 if [ "$answer" == "y" ] || [ "$answer" == "Y" ]; then

@@ -196,7 +196,7 @@ show_logs() {
                 if [ $YES -eq 0 ]; then
                     read -p "${warning_prefix} Do you wish to continue? (y/n): " answer
                     if [ "$answer" == "y" ] || [ "$answer" == "Y" ]; then
-                        show_logs 4 "You've been warned..."
+                        show_logs 3 "You've been warned..."
                         return
                     else
                         show_logs 3 "Closing script..."
@@ -349,18 +349,22 @@ decrypt_files() {
         path_to_tar="${TEMP_DIR}/${filename}.tar.gz"
         gpg -o $path_to_tar -d $input_element
 
+        tree
+        
         path_to_output="${OUTPUT_DIR}/${filename}"
         tar -xzf $path_to_tar -C $path_to_output
 
+        tree
+
         clean_path "$path_to_tar"
 
-        local warned_user=0
-        if [ "$warned_user" -eq 0 ]; then
-            show_logs 2 "The script will delete input files"
-            warned_user=1
-        fi
-
         if [ "$WIPE" == "spare" ] || [ "$WIPE" == "complete" ]; then
+            local warned_user=0
+            if [ "$warned_user" -eq 0 ]; then
+                show_logs 2 "The script will delete input files"
+                warned_user=1
+            fi
+
             clean_path "$input_element"
         fi
     done

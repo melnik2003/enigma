@@ -306,7 +306,7 @@ encrypt_files() {
     local new_name="$(generate_name)"
     local new_dir="${TEMP_DIR}/${new_name}"
 
-    if [ INPUT_FLAG -eq 0 ]; then
+    if [ $INPUT_FLAG -eq 0 ]; then
         cp -r "${INPUT_DIR}" "${new_dir}"
     else
         mkdir "$new_dir"

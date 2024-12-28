@@ -532,8 +532,8 @@ if [ "$main_param" == "e" ] || [ "$main_param" == "d" ]; then
 
         unset seen_basenames
     fi
-    
-    if [ OUTPUT_FLAG -eq 0 ]; then
+
+    if [ $OUTPUT_FLAG -eq 0 ]; then
         OUTPUT_PATH=$OUTPUT_DIR
     fi
 fi

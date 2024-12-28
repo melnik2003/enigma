@@ -122,7 +122,7 @@ get_dir_elements() {
     validate_dir "$dir_path"
     local elements
     mapfile -t elements < <(find "$dir_path" -maxdepth 1 -mindepth 1)
-    echo "${elements[@]}"
+    printf "%s\n" "${elements[@]}"
 }
 
 validate_main_dir_struct() {

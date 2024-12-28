@@ -123,6 +123,20 @@ validate_main_dir_struct() {
     fi
 }
 
+clean_path() {
+    local path="$1"
+
+    validate_path "$path"
+
+    show_logs 4 "Cleaning path: ${path}"
+
+    if [ "$WIPE" == "complete" ]; then
+        wipe -rf "$path"
+    else
+        rm -rf "$path"
+    fi
+}
+
 generate_name() {
     length=16
     cat /dev/urandom | tr -dc 'A-Za-z0-9' | head -c $length
@@ -225,20 +239,6 @@ init_main_dir() {
     fi
 }
 
-clean_path() {
-    local path="$1"
-
-    validate_path "$path"
-
-    show_logs 4 "Cleaning path: ${path}"
-
-    if [ "$WIPE" == "complete" ]; then
-        wipe -rf "$path"
-    else
-        rm -rf "$path"
-    fi
-}
-
 clean_main_dir() {
     if [ $YES -eq 0 ]; then
         show_logs 2 "The script shall delete all from the main directory."
@@ -298,6 +298,8 @@ encrypt_files() {
     local new_name="$(generate_name)"
     local new_dir="${TEMP_DIR}/${new_name}"
 
+    show_logs 3 "Gathering input files..."
+
     if [ $INPUT_FLAG -eq 0 ]; then
         cp -r "${INPUT_DIR}" "${new_dir}"
     else
@@ -307,35 +309,27 @@ encrypt_files() {
         done
     fi
 
-    show_logs 2 "Checkpoint 1" 
+    show_logs 3 "Packing files..."
 
     local path_to_tar="${new_dir}.tar.gz"
     tar -czf "$path_to_tar" "$new_dir"
 
-    show_logs 2 "Checkpoint 2" 
-
     local path_to_gpg="${path_to_tar}.gpg"
     gpg -o $path_to_gpg -c --no-symkey-cache --cipher-algo AES256 $path_to_tar
-
-    show_logs 2 "Checkpoint 3" 
 
     local path_to_hidden="${new_dir}.dat"
     mv $path_to_gpg $path_to_hidden
 
-    show_logs 2 "Checkpoint 4" 
-
     mv -t "$OUTPUT_DIR" "$path_to_hidden"
 
-    if [ ! $WIPE == "none" ] && [ ! "$YES" -eq 0 ]; then
-        show_logs 2 "Input and temp files are going to be deleted"
-    fi
-
-    show_logs 2 "Checkpoint 5" 
+    show_logs 3 "Cleaning temp files..."
 
     clean_path $new_dir
     clean_path $path_to_tar
-
+    
     if [ "$WIPE" == "spare" ] || [ "$WIPE" == "complete" ]; then
+        show_logs 2 "The script will delete input files"
+        show_logs 3 "Cleaning input files..."
         for input_element in "${INPUT_PATHS[@]}"; do
             clean_path "$input_element"
         done
@@ -343,20 +337,28 @@ encrypt_files() {
 }
 
 decrypt_files() {
-    for input_element in "${INPUT_PATHS[@]}"; do
-        local filename=$(basename "$input_element" .dat)
+    local filename=""
+    local path_to_tar=""
+    local path_to_output=""
 
-        local path_to_tar="${TEMP_DIR}/${filename}.tar.gz"
+    show_logs 3 "Decrypting archives one by one..."
+
+    for input_element in "${INPUT_PATHS[@]}"; do
+        filename=$(basename "$input_element" .dat)
+
+        path_to_tar="${TEMP_DIR}/${filename}.tar.gz"
         gpg -o $path_to_tar -d $input_element
 
-        local path_to_output="${OUTPUT_DIR}/${filename}"
+        path_to_output="${OUTPUT_DIR}/${filename}"
         tar -xzf $path_to_tar -C $path_to_output
 
-        if [ ! $WIPE == "none" ] && [ ! "$YES" -eq 0 ]; then
-            show_logs 2 "Input files are going to be deleted"
-        fi
-
         clean_path "$path_to_tar"
+
+        local warned_user=0
+        if [ "$warned_user" -eq 0 ]; then
+            show_logs 2 "The script will delete input files"
+            warned_user=1
+        fi
 
         if [ "$WIPE" == "spare" ] || [ "$WIPE" == "complete" ]; then
             clean_path "$input_element"

@@ -277,10 +277,14 @@ clean_main_dir() {
 
         for path in "${paths[@]}"; do
             show_logs 4 "Checking path ${path}"
-            if [ ! "${MAIN_SUBDIRS[@]}" == "$path" ]; then
-                show_logs 4 "Removing path: ${path}"
-                sudo rm -rf "$path"
-            fi
+            for item in "${MAIN_SUBDIRS[@]}"; do
+                if [[ "$item" == "$path" ]]; then
+                    show_logs 4 "Skipping path: ${path}"
+                    break
+                fi
+            done
+            show_logs 4 "Removing path: ${path}"
+            sudo rm -rf "$path"
         done
         
         paths=$(get_dir_elements "$INPUT_DIR")

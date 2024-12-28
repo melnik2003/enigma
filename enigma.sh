@@ -26,7 +26,6 @@
 # --- Global -------------------------------------------------------
 VERSION=0.0.1
 SUBJECT=$0
-USERNAME=""
 
 MAIN_DIR="$(dirname "$(realpath "$0")")/enigma"
 INPUT_DIR="${MAIN_DIR}/input"
@@ -62,8 +61,6 @@ show_help_en() {
     echo "-v                Print the script version"
     echo ""
     echo "Additional params:"
-    echo "-u                Set the name of a user that shall claim the ownership of the archive"
-    echo ""
     echo "-l                Choose logging level (1 - errors, 2 - warnings, 3 - info, 4 - debug)"
     echo ""
     echo "-i <path>         Specify a path for an input file or directory"
@@ -108,13 +105,6 @@ validate_file() {
 	if [ ! -f $path ] ; then
 		show_logs 1 "noFile" "$path"
 	fi
-}
-
-wipe_path() {
-	path="$1"
-    validate_path "$path"
-    show_logs 2 "Wiping path: ${path}"
-    sudo wipe -rf $path
 }
 
 get_dir_elements() {
@@ -189,15 +179,15 @@ show_logs() {
         "2")
             if [ $LOGGING_LEVEL -ge $msg_log_lvl ]; then
                 echo "${warning_prefix} ${msg}"
-                read -p "${warning_prefix} Do you wish to continue? (y/n): " answer
-
-
-                if [ "$answer" == "y" ] || [ "$answer" == "Y" ]; then
-                    show_logs 4 "You've been warned..."
-                    return
-                else
-                    show_logs 3 "Closing script..."
-                    exit 0
+                if [ $YES -eq 0 ]; then
+                    read -p "${warning_prefix} Do you wish to continue? (y/n): " answer
+                    if [ "$answer" == "y" ] || [ "$answer" == "Y" ]; then
+                        show_logs 4 "You've been warned..."
+                        return
+                    else
+                        show_logs 3 "Closing script..."
+                        exit 0
+                    fi
                 fi
             fi
             ;;
@@ -238,12 +228,14 @@ init_main_dir() {
 clean_path() {
     local path="$1"
 
+    validate_path "$path"
+
     show_logs 4 "Cleaning path: ${path}"
 
     if [ "$WIPE" == "complete" ]; then
-        sudo wipe -rf "$path"
+        wipe -rf "$path"
     else
-        sudo rm -rf "$path"
+        rm -rf "$path"
     fi
 }
 
@@ -332,39 +324,22 @@ encrypt_files() {
 
     show_logs 2 "Checkpoint 4" 
 
-    if [ ! "$USERNAME" == "" ]; then
-        chown -R "$USERNAME" "$path_to_hidden"
+    mv -t "$OUTPUT_DIR" "$path_to_hidden"
+
+    if [ ! $WIPE == "none" ] && [ ! "$YES" -eq 0 ]; then
+        show_logs 2 "Input and temp files are going to be deleted"
     fi
 
     show_logs 2 "Checkpoint 5" 
 
-    mv -t "$OUTPUT_DIR" "$path_to_hidden"
+    clean_path $new_dir
+    clean_path $path_to_tar
 
-    if [ ! $WIPE == "none" ] && [ ! "$YES" -eq 0 ]; then
-        show_logs 2 "Input files are going to be deleted"
+    if [ "$WIPE" == "spare" ] || [ "$WIPE" == "complete" ]; then
+        for input_element in "${INPUT_PATHS[@]}"; do
+            clean_path "$input_element"
+        done
     fi
-
-    show_logs 2 "Checkpoint 6" 
-
-    case $WIPE in
-        "none")
-            sudo rm -rf $new_dir
-            sudo rm -rf $path_to_tar
-            ;;
-        "spare")
-            sudo rm -rf $new_dir
-            sudo rm -rf $path_to_tar
-            for input_element in "${INPUT_PATHS[@]}"; do
-                rm -rf "$input_element"
-            done
-            ;;
-        "complete")
-            wipe_path $new_dir
-            wipe_path $path_to_tar
-            for input_element in "${INPUT_PATHS[@]}"; do
-                wipe_path "$input_element"
-            done
-    esac
 }
 
 decrypt_files() {
@@ -377,28 +352,15 @@ decrypt_files() {
         local path_to_output="${OUTPUT_DIR}/${filename}"
         tar -xzf $path_to_tar -C $path_to_output
 
-        if [ ! "$USERNAME" == "" ]; then
-            chown -R "$USERNAME" "$path_to_output"
-        fi
-
         if [ ! $WIPE == "none" ] && [ ! "$YES" -eq 0 ]; then
             show_logs 2 "Input files are going to be deleted"
         fi
 
-        case "$WIPE" in
-            "none")
-                sudo rm -rf "$path_to_tar"
-                continue
-                ;;
-            "spare")
-                sudo rm -rf "$input_element"
-                sudo rm -rf "$path_to_tar"
-                ;;
-            "complete")
-                wipe_path "$input_element"
-                wipe_path "$path_to_tar"
-                ;;
-        esac
+        clean_path "$path_to_tar"
+
+        if [ "$WIPE" == "spare" ] || [ "$WIPE" == "complete" ]; then
+            clean_path "$input_element"
+        fi
     done
 }
 # ------------------------------------------------------------------
@@ -426,7 +388,7 @@ YES=0
 INPUT_FLAG=0
 OUTPUT_FLAG=0
 
-while getopts ":hvIedcu:l:i:o:wWy" param
+while getopts ":hvIedcl:i:o:wWy" param
 do
     if [[ " ${main_params[@]} " =~ "$param" ]]; then
         if [ "$main_param" == "" ]; then
@@ -444,13 +406,6 @@ do
         "d") ;;
         "c") ;;
 
-        "u")
-            if getent passwd "$OPTARG" > /dev/null 2>&1; then
-                $USERNAME="$OPTARG"
-            else
-                show_logs 1 "Username \"${OPTARG}\" doesn't exists"
-            fi
-            ;;
         "l")
             if [[ "$OPTARG" =~ ^-?[0-9]+$ ]]; then
                 if (( OPTARG >= 1 && OPTARG <= 4 )); then
@@ -515,6 +470,7 @@ if [ "$main_param" == "e" ] || [ "$main_param" == "d" ]; then
     if [ $INPUT_FLAG -eq 0 ] || [ $OUTPUT_FLAG -eq 0 ]; then
         validate_main_dir_struct
     fi
+
     if [ $INPUT_FLAG -eq 0 ]; then
         INPUT_PATHS=$(get_dir_elements "$INPUT_DIR")
     else
@@ -553,21 +509,18 @@ case "$main_param" in
         show_logs 3 "Everything went well, now thou canst put files inside the \"input\" directory"
         ;;
     "e")
-        if [ "$EUID" -ne 0 ]; then
-            show_logs 1 "Use with sudo"
+        if [ "$EUID" -eq 0 ]; then
+            show_logs 2 "I recommend using it with regular user rights (without sudo)"
         fi
         encrypt_files
         ;;
     "d")
-        if [ "$EUID" -ne 0 ]; then
-            show_logs 1 "Use with sudo"
+        if [ "$EUID" -eq 0 ]; then
+            show_logs 2 "I recommend using it with regular user rights (without sudo)"
         fi
         decrypt_files
         ;;
     "c")
-        if [ "$EUID" -ne 0 ]; then
-            show_logs 1 "Use with sudo"
-        fi
         validate_main_dir_struct
         clean_main_dir
         ;;

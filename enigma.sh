@@ -248,8 +248,9 @@ clean_main_dir() {
     if [ "$WIPE" == "complete" ]; then
 
         for path in "${paths[@]}"; do
-            show_logs 4 "Checking path ${path}"
+            show_logs 4 "Checking path: ${path}"
             if [[ ! " ${MAIN_SUBDIRS[@]} " =~ "$path" ]]; then
+            show_logs 4 "Wiping path: ${path}"
                 wipe_path "$path"
             fi
         done

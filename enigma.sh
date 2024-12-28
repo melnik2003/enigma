@@ -512,11 +512,12 @@ touch $LOCK_FILE
 
 # --- Body --------------------------------------------------------
 if [ "$main_param" == "e" ] || [ "$main_param" == "d" ]; then
-    if [ INPUT_FLAG -eq 0 ] || [ OUTPUT_FLAG -eq 0 ]; then
+    if [ $INPUT_FLAG -eq 0 ] || [ $OUTPUT_FLAG -eq 0 ]; then
         validate_main_dir_struct
     fi
-    if [ INPUT_FLAG -eq 0 ]; then
+    if [ $INPUT_FLAG -eq 0 ]; then
         INPUT_PATHS=$(get_dir_elements "$INPUT_DIR")
+    else
         declare -A seen_basenames
 
         for file_path in "${INPUT_DIR[@]}"; do
@@ -531,6 +532,7 @@ if [ "$main_param" == "e" ] || [ "$main_param" == "d" ]; then
 
         unset seen_basenames
     fi
+    
     if [ OUTPUT_FLAG -eq 0 ]; then
         OUTPUT_PATH=$OUTPUT_DIR
     fi

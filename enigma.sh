@@ -20,6 +20,7 @@
 # Add variable and option to change .dat ext
 # Test all other stuff
 # Add rm -rf to a separate function and add path_check to it like with wipe
+# Add colored prefix to warning read
 # ------------------------------------------------------------------
 
 # --- Global -------------------------------------------------------
@@ -248,9 +249,12 @@ clean_main_dir() {
         show_logs 2 "The script shallst delete all from the main directory."
     fi
 
+    show_logs 4 "WIPE var is: ${WIPE}"
+
     if [ "$WIPE" == "complete" ]; then
 
         for path in "${paths[@]}"; do
+            show_logs 4 "Checking path ${path}"
             if [[ ! " ${MAIN_SUBDIRS[@]} " =~ "$path" ]]; then
                 wipe_path "$path"
             fi
@@ -258,41 +262,46 @@ clean_main_dir() {
         
         paths=$(get_dir_elements "$INPUT_DIR")
         for path in "${paths[@]}"; do
+            show_logs 4 "Checking path ${path}"
             wipe_path "$path"
         done
 
         paths=$(get_dir_elements "$OUTPUT_DIR")
         for path in "${paths[@]}"; do
+            show_logs 4 "Checking path ${path}"
             wipe_path "$path"
         done
 
         paths=$(get_dir_elements "$TEMP_DIR")
         for path in "${paths[@]}"; do
+            show_logs 4 "Checking path ${path}"
             wipe_path "$path"
         done
 
     else
 
         for path in "${paths[@]}"; do
-            if [[ " ${MAIN_SUBDIRS[@]} " =~ "$path" ]]; then
-                continue
-            else
+            show_logs 4 "Checking path ${path}"
+            if [[ ! " ${MAIN_SUBDIRS[@]} " =~ "$path" ]]; then
                 sudo rm -rf "$path"
             fi
         done
         
         paths=$(get_dir_elements "$INPUT_DIR")
         for path in "${paths[@]}"; do
+            show_logs 4 "Checking path ${path}"
             sudo rm -rf "$path"
         done
 
         paths=$(get_dir_elements "$OUTPUT_DIR")
         for path in "${paths[@]}"; do
+            show_logs 4 "Checking path ${path}"
             sudo rm -rf "$path"
         done
 
         paths=$(get_dir_elements "$TEMP_DIR")
         for path in "${paths[@]}"; do
+            show_logs 4 "Checking path ${path}"
             sudo rm -rf "$path"
         done
 

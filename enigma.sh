@@ -350,8 +350,8 @@ decrypt_files() {
         gpg -o $path_to_tar -d $input_element
 
         tree
-        
-        path_to_output="${OUTPUT_DIR}/${filename}"
+
+        path_to_output="${OUTPUT_DIR}"
         tar -xzf $path_to_tar -C $path_to_output
 
         tree

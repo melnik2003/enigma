@@ -252,7 +252,7 @@ clean_dir() {
 clean_main_dir() {
     show_logs 4 "WIPE status is: ${WIPE}"
 
-    if [ "$DIR_FOR_CLEANING" == "all"]; then
+    if [ "$DIR_FOR_CLEANING" == "all" ]; then
         show_logs 2 "The script will delete all files from the main directory."
         clean_dir "$INPUT_DIR"
         clean_dir "$OUTPUT_DIR"

@@ -15,16 +15,13 @@
 # ------------------------------------------------------------------
 
 # --- Notes --------------------------------------------------------
-# Add debug and info logs
 # Test if get_dir_elements handles special characters in paths
 # Add variable and option to change .dat ext
 # Test all other stuff
-# Add rm -rf to a separate function and add path_check to it like with wipe
-# Add colored prefix to warning read
 # ------------------------------------------------------------------
 
 # --- Global -------------------------------------------------------
-VERSION=0.0.1
+VERSION=0.0.2
 SUBJECT=$0
 
 MAIN_DIR="$(dirname "$(realpath "$0")")/enigma"

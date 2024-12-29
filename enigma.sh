@@ -298,7 +298,7 @@ encrypt_files() {
     local path_to_hidden="${new_dir}.dat"
     mv $path_to_gpg $path_to_hidden
 
-    mv -t "$OUTPUT_DIR" "$path_to_hidden"
+    mv -t "$OUTPUT_PATH" "$path_to_hidden"
 
     show_logs 3 "Cleaning temp files..."
 
@@ -326,8 +326,8 @@ decrypt_files() {
         path_to_tar="${TEMP_DIR}/${filename}.tar.gz"
         gpg -o $path_to_tar -d $input_element
 
-        show_logs 4 "Running tar -xzf ${path_to_tar} -C ${OUTPUT_DIR} "
-        tar -xzf "$path_to_tar" -C "$OUTPUT_DIR"
+        show_logs 4 "Running tar -xzf ${path_to_tar} -C ${OUTPUT_PATH} "
+        tar -xzf "$path_to_tar" -C "$OUTPUT_PATH"
 
         clean_path "$path_to_tar"
 

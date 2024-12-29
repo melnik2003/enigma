@@ -7,11 +7,11 @@
 # It requires tar, gzip, gpg, wipe, tree
 # The script works in semi-automatic mode, gpg interface handles some 
 # of the actions like writing passwords
-# I recommend thou to initialize the main directory using -i, it will 
-# help reduce the damage thou canst dost to thine system if thou shallst 
+# I recommend you to initialize the main directory using -i, it will 
+# help reduce the damage you could do to the system in case you 
 # pass wrong file paths to the script
 # The main directory is not supposed to store files, use it considering
-# every file in it shalt be deleted sooner or later
+# every file in it can be deleted sooner or later
 # ------------------------------------------------------------------
 
 # --- Notes --------------------------------------------------------
@@ -480,7 +480,7 @@ case "$main_param" in
             show_logs 2 "I recommend using it with regular user rights (without sudo)"
         fi
         init_main_dir
-        show_logs 3 "Everything went well, now thou canst put files inside the \"input\" directory"
+        show_logs 3 "Everything went well, now you can put files inside the \"input\" directory"
         ;;
     "e")
         if [ "$EUID" -eq 0 ]; then

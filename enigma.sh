@@ -76,7 +76,7 @@ show_help_en() {
 
 show_main_dir() {
 	echo ""
-	tree $MAIN_DIR
+	tree $MAIN_DIR --dirsfirst
 	echo ""
 }
 
@@ -499,6 +499,10 @@ case "$main_param" in
         clean_main_dir
         ;;
 esac
+
+if [ $LOGGING_LEVEL -eq 4 ]; then
+    show_main_dir
+fi
 
 exit 0
 # -----------------------------------------------------------------

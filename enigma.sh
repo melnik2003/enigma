@@ -351,7 +351,7 @@ if [ $# == 0 ] ; then
     exit 1
 fi
 
-main_params=("h" "v" "I" "e" "d" "c")
+main_params=("h" "v" "I" "e" "d" "c" "C")
 
 main_param=""
 

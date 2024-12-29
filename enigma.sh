@@ -316,7 +316,7 @@ encrypt_files() {
 
     local path_to_tar="${new_dir}.tar.gz"
     show_logs 4 "Running tar -czf ${path_to_tar} -C ${TEMP_DIR} ${new_name}"
-    tar -czf "$path_to_tar" -C "$INPUT_DIR" "$new_name"
+    tar -czf "$path_to_tar" -C "$TEMP_DIR" "$new_name"
 
     tree
 

@@ -17,14 +17,14 @@
 # --- Notes --------------------------------------------------------
 # Test if get_dir_elements handles special characters in paths
 # Add variable and option to change .dat ext
-# Test all other stuff
+# Test -i and -o options
 # ------------------------------------------------------------------
 
 # --- Global -------------------------------------------------------
 VERSION=0.0.2
 SUBJECT=$0
 
-MAIN_DIR="$(dirname "$(realpath "$0")")/enigma"
+MAIN_DIR="$(dirname "$(realpath "$0")")"
 INPUT_DIR="${MAIN_DIR}/input"
 OUTPUT_DIR="${MAIN_DIR}/output"
 TEMP_DIR="${MAIN_DIR}/temp"
@@ -114,9 +114,9 @@ get_dir_elements() {
 
 validate_main_dir_struct() {
     if [ -d "$MAIN_DIR" ] && [ -d "$INPUT_DIR" ] && [ -d "$OUTPUT_DIR" ]&& [ -d "$TEMP_DIR" ]; then
-        show_logs 4 "Main dir is okay"
+        show_logs 4 "Main directory is okay"
     else
-        show_logs 1 "Something is wrong with the main dir structure"
+        show_logs 1 "Something is wrong with the main directory structure"
     fi
 }
 
@@ -193,7 +193,7 @@ show_logs() {
                 if [ $YES -eq 0 ]; then
                     read -p "${warning_prefix} Do you wish to continue? (y/n): " answer
                     if [ "$answer" == "y" ] || [ "$answer" == "Y" ]; then
-                        show_logs 3 "You've been warned..."
+                        echo "${warning_prefix} You've been warned..."
                         return
                     else
                         show_logs 3 "Closing script..."
@@ -218,10 +218,6 @@ show_logs() {
 
 # --- Main functions -----------------------------------------------
 init_main_dir() {
-    if [ ! -d "$MAIN_DIR" ]; then
-        mkdir "$MAIN_DIR"
-        show_logs 3 "Created ${MAIN_DIR}"
-    fi
     if [ ! -d "$INPUT_DIR" ]; then
         mkdir "$INPUT_DIR"
         show_logs 3 "Created ${INPUT_DIR}"
@@ -243,28 +239,7 @@ clean_main_dir() {
 
     show_logs 4 "WIPE var is: ${WIPE}"
 
-    local skip_dir=0
     declare -a paths
-    readarray -t paths < <(get_dir_elements "$MAIN_DIR")
-
-    for path in "${paths[@]}"; do
-        if [[ -n "$path" ]]; then
-            show_logs 4 "Checking MAIN_DIR element: ${path}"
-            skip_dir=0
-            for item in "${MAIN_SUBDIRS[@]}"; do
-                local dir_basename="$(basename "$path")"
-                show_logs 4 "Comparing main subdir ${item} to ${dir_basename}"
-                if [[ "$item" == "$dir_basename" ]]; then
-                    show_logs 4 "Skipping path: ${path}"
-                    skip_dir=1
-                    break
-                fi
-            done
-            if [ $skip_dir -eq 0 ]; then
-                clean_path "$path"
-            fi
-        fi
-    done
     
     readarray -t paths < <(get_dir_elements "$INPUT_DIR")
     for path in "${paths[@]}"; do
@@ -308,14 +283,9 @@ encrypt_files() {
 
     show_logs 3 "Packing files..."
 
-    tree
-    ls "$TEMP_DIR"
-
     local path_to_tar="${new_dir}.tar.gz"
     show_logs 4 "Running tar -czf ${path_to_tar} -C ${TEMP_DIR} ${new_name}"
     tar -czf "$path_to_tar" -C "$TEMP_DIR" "$new_name"
-
-    tree
 
     local path_to_gpg="${path_to_tar}.gpg"
     gpg -o $path_to_gpg -c --no-symkey-cache --cipher-algo AES256 $path_to_tar
@@ -351,12 +321,8 @@ decrypt_files() {
         path_to_tar="${TEMP_DIR}/${filename}.tar.gz"
         gpg -o $path_to_tar -d $input_element
 
-        tree
-
         show_logs 4 "Running tar -xzf ${path_to_tar} -C ${OUTPUT_DIR} "
         tar -xzf "$path_to_tar" -C "$OUTPUT_DIR"
-
-        tree
 
         clean_path "$path_to_tar"
 
@@ -378,10 +344,6 @@ decrypt_files() {
 if [ $# == 0 ] ; then
     show_help_en
     exit 1
-fi
-
-if [ $LOGGING_LEVEL -eq 4 ]; then
-    show_main_dir
 fi
 
 main_params=("h" "v" "I" "e" "d" "c")
@@ -474,6 +436,10 @@ touch $LOCK_FILE
 # -----------------------------------------------------------------
 
 # --- Body --------------------------------------------------------
+if [ $LOGGING_LEVEL -eq 4 ]; then
+    show_main_dir
+fi
+
 if [ "$main_param" == "e" ] || [ "$main_param" == "d" ]; then
     if [ $INPUT_FLAG -eq 0 ] || [ $OUTPUT_FLAG -eq 0 ]; then
         validate_main_dir_struct

@@ -18,7 +18,7 @@
 # --- Notes --------------------------------------------------------
 # Test if get_dir_elements handles special characters in paths
 # Add variable and option to change .dat ext
-# Test -i and -o options
+# Test -i 
 # ------------------------------------------------------------------
 
 # --- Global -------------------------------------------------------

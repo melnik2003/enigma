@@ -386,7 +386,7 @@ do
             if [[ " ${MAIN_SUBDIRS[@]} " =~ "$OPTARG" ]]; then
                 DIR_FOR_CLEANING=$OPTARG
             else
-                show_logs 2 "You are going to clean non-script directory"
+                show_logs 1 "The script can't clean foreign directories"
             fi
             ;;
 

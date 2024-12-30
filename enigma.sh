@@ -468,7 +468,7 @@ if [ "$main_param" == "e" ] || [ "$main_param" == "d" ]; then
     else
         declare -A seen_basenames
 
-        for file_path in "${input_paths[@]}"; do
+        for file_path in "${INPUT_PATHS[@]}"; do
             base_name=$(basename "$file_path")
             
             if [[ -n "${seen_basenames[$base_name]}" ]]; then

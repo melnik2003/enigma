@@ -300,6 +300,8 @@ encrypt_files() {
 
     mv -t "$OUTPUT_PATH" "$path_to_hidden"
 
+    tree
+
     show_logs 3 "Cleaning temp files..."
 
     clean_path $new_dir

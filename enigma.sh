@@ -229,6 +229,8 @@ init_main_dir() {
         mkdir "$TEMP_DIR"
         show_logs 3 "Created ${TEMP_DIR}"
     fi
+
+    show_logs 3 "Now you can put files inside the \"input\" directory"
 }
 
 clean_dir() {
@@ -270,6 +272,8 @@ clean_main_dir() {
 }
 
 encrypt_files() {
+    show_logs 3 "Generating new name..."
+
     local new_name="$(generate_name)"
     local new_dir="${TEMP_DIR}/${new_name}"
 
@@ -298,8 +302,6 @@ encrypt_files() {
 
     mv -t "$OUTPUT_PATH" "$path_to_hidden"
 
-    tree
-
     show_logs 3 "Cleaning temp files..."
 
     clean_path $new_dir
@@ -312,6 +314,8 @@ encrypt_files() {
             clean_path "$input_element"
         done
     fi
+
+    show_logs 3 "Archive name: ${new_name}"
 }
 
 decrypt_files() {
@@ -496,7 +500,6 @@ case "$main_param" in
             show_logs 2 "I recommend using it with regular user rights (without sudo)"
         fi
         init_main_dir
-        show_logs 3 "Everything went well, now you can put files inside the \"input\" directory"
         ;;
     "e")
         if [ "$EUID" -eq 0 ]; then

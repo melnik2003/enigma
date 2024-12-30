@@ -294,6 +294,8 @@ encrypt_files() {
     show_logs 4 "Running tar -czf ${path_to_tar} -C ${TEMP_DIR} ${new_name}"
     tar -czf "$path_to_tar" -C "$TEMP_DIR" "$new_name"
 
+    show_logs 3 "Encrypting files..."
+
     local path_to_gpg="${path_to_tar}.gpg"
     gpg -o $path_to_gpg -c --no-symkey-cache --cipher-algo AES256 $path_to_tar
 

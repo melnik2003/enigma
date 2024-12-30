@@ -20,7 +20,7 @@
 # ------------------------------------------------------------------
 
 # --- Global -------------------------------------------------------
-VERSION=0.1.0
+VERSION=0.1.1
 SUBJECT=$0
 
 MAIN_DIR="$(dirname "$(realpath "$0")")"
@@ -82,7 +82,7 @@ show_main_dir() {
 validate_path() {
     path="$1"
 	
-	if [ ! -e $path ]; then
+	if [ ! -e "$path" ]; then
 		show_logs 1 "noPath" "$path"
 	fi
 }
@@ -90,7 +90,7 @@ validate_path() {
 validate_dir() {
     path="$1"
 	
-	if [ ! -d $path ] ; then
+	if [ ! -d "$path" ] ; then
 		show_logs 1 "noDir" "$path"
 	fi
 }

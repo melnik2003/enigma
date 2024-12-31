@@ -278,6 +278,7 @@ encrypt_files() {
     local new_dir="${TEMP_DIR}/${new_name}"
     mkdir "$new_dir"
 
+    show_logs 2 "The script will delete input files"
     show_logs 3 "Gathering input files..."
 
     if [ $REMOVE -eq 1 ]; then
@@ -286,7 +287,7 @@ encrypt_files() {
         done
     else
 		for input_element in "${INPUT_PATHS[@]}"; do
-			cp "$input_element" "$new_dir" 
+			cp -r "$input_element" "$new_dir" 
 		done
 	fi
 
@@ -314,14 +315,6 @@ encrypt_files() {
     local path_to_hidden="${new_dir}.dat"
     mv $path_to_gpg $path_to_hidden
     mv -t "$OUTPUT_PATH" "$path_to_hidden"
-    
-    if [ $REMOVE -eq 1 ]; then
-        show_logs 2 "The script will delete input files"
-        show_logs 3 "Cleaning input files..."
-        for input_element in "${INPUT_PATHS[@]}"; do
-            clean_path "$input_element"
-        done
-    fi
 
     show_logs 3 "Archive name: ${new_name}.dat"
 }
@@ -330,7 +323,7 @@ decrypt_files() {
     local filename=""
     local path_to_tar=""
 
-    show_logs 3 "Decrypting archives..."
+    show_logs 3 "Decrypting and unpacking archives..."
 
     for input_element in "${INPUT_PATHS[@]}"; do
         filename=$(basename "$input_element" .dat)
@@ -345,7 +338,7 @@ decrypt_files() {
     done
 
 	if [ $REMOVE -eq 1 ]; then
-		show_logs 2 "The script will delete input files"
+		show_logs 2 "The script will remove input files"
 		for input_element in "${INPUT_PATHS[@]}"; do
             clean_path "$input_element"
         done

@@ -15,12 +15,12 @@
 # every file in it can be deleted sooner or later
 # ------------------------------------------------------------------
 
-# --- Notes --------------------------------------------------------
+# --- Notes for me -------------------------------------------------
 # Add variable and option to change .dat obfuscation extension
 # ------------------------------------------------------------------
 
 # --- Global -------------------------------------------------------
-VERSION=0.1.1
+VERSION=0.2.0
 SUBJECT=$0
 
 MAIN_DIR="$(dirname "$(realpath "$0")")"
@@ -42,16 +42,16 @@ show_help_en() {
     echo "-I                Init the directories"
     echo "                  Use on the first launch"
     echo ""
-    echo "-e                Encrypt the contents of input to output"
-    echo "                  Use with -i -o to specify input files and an output directory"
-    echo "                  Use with -w -W to wipe input files and -y to skip warnings"
+    echo "-e                Encrypt the content of input to output"
+    echo "                  Use with -i and -o to specify input files and an output directory"
+    echo "                  Use with -r to remove input files and -y to skip warnings"
     echo ""
-    echo "-d                Decrypt the contents of input to output"
-    echo "                  One can use it with -u -i -o -w -W -y as well"
+    echo "-d                Decrypt the content of input to output"
+    echo "                  One can use it with -u -i -o -r -w -y as well"
     echo ""
     echo "-c <dir>          Clean one of the main directories (input, output, temp)"
     echo "-C                Clean all of them"
-    echo "                  Use with -W for thorough* cleaning"
+    echo "                  Use with -w for thorough* cleaning"
     echo ""
     echo "-h                Print this help message"
     echo "-v                Print the script version"
@@ -60,17 +60,16 @@ show_help_en() {
     echo "-l <level>        Choose logging level (1 - errors, 2 - warnings, 3 - info, 4 - debug)"
     echo ""
     echo "-i <path>         Specify a path for an input file or directory"
-    echo "                  To use with several files and directories, one shall use it with -i <path> for each path"
+    echo "                  To use with several files and directories, write -i <path> for each path"
     echo ""
     echo "-o <dir_path>     Specify the output directory"
     echo ""
-    echo "-w                Wipe files sparingly"
-    echo "                  Normal \"rm -rf\" deletion takes place, lest drive resources be wasted."
+    echo "-r                Remove input files"
     echo ""
-    echo "-W                Wipe files thoroughly"
-    echo "                  *Full and complete wiping of all non-output files, without any opportunity for restoration"
+    echo "-w                Wipe files"
+    echo "                  *Uses wipe to remove non-output files"
     echo ""
-    echo "-y                Skip all warnings, although I don't recommend using it"
+    echo "-y                Skip all warnings"
 }
 
 show_main_dir() {
@@ -105,8 +104,9 @@ validate_file() {
 
 get_dir_elements() {
     local dir_path="$1"
-    validate_dir "$dir_path"
     local elements
+
+    validate_dir "$dir_path"
     mapfile -t elements < <(find "$dir_path" -maxdepth 1 -mindepth 1)
     printf "%s\n" "${elements[@]}"
 }
@@ -126,7 +126,7 @@ clean_path() {
 
     show_logs 4 "Cleaning path: ${path}"
 
-    if [ "$WIPE" == "complete" ]; then
+    if [ $WIPE -eq 1 ]; then
         wipe -rf "$path"
     else
         rm -rf "$path"
@@ -276,40 +276,46 @@ encrypt_files() {
 
     local new_name="$(generate_name)"
     local new_dir="${TEMP_DIR}/${new_name}"
+    mkdir "$new_dir"
 
     show_logs 3 "Gathering input files..."
 
-    if [ $INPUT_FLAG -eq 0 ]; then
-        cp -r "${INPUT_DIR}" "${new_dir}"
-    else
-        mkdir "$new_dir"
+    if [ $REMOVE -eq 1 ]; then
         for input_element in "${INPUT_PATHS[@]}"; do
-            cp "$input_element" "$new_dir" 
+            mv -t "$new_dir" "$input_element" 
         done
-    fi
+    else
+		for input_element in "${INPUT_PATHS[@]}"; do
+			cp "$input_element" "$new_dir" 
+		done
+	fi
 
     show_logs 3 "Packing files..."
 
     local path_to_tar="${new_dir}.tar.gz"
     show_logs 4 "Running tar -czf ${path_to_tar} -C ${TEMP_DIR} ${new_name}"
     tar -czf "$path_to_tar" -C "$TEMP_DIR" "$new_name"
+    
+    show_logs 3 "Cleaning temp files..."
+
+    clean_path $new_dir
 
     show_logs 3 "Encrypting files..."
 
     local path_to_gpg="${path_to_tar}.gpg"
     gpg -o $path_to_gpg -c --no-symkey-cache --cipher-algo AES256 $path_to_tar
 
+    show_logs 3 "Cleaning temp tar archive..."
+
+    clean_path $path_to_tar
+
+    show_logs 3 "Moving to output directory..."
+
     local path_to_hidden="${new_dir}.dat"
     mv $path_to_gpg $path_to_hidden
-
     mv -t "$OUTPUT_PATH" "$path_to_hidden"
-
-    show_logs 3 "Cleaning temp files..."
-
-    clean_path $new_dir
-    clean_path $path_to_tar
     
-    if [ "$WIPE" == "spare" ] || [ "$WIPE" == "complete" ]; then
+    if [ $REMOVE -eq 1 ]; then
         show_logs 2 "The script will delete input files"
         show_logs 3 "Cleaning input files..."
         for input_element in "${INPUT_PATHS[@]}"; do
@@ -317,14 +323,14 @@ encrypt_files() {
         done
     fi
 
-    show_logs 3 "Archive name: ${new_name}"
+    show_logs 3 "Archive name: ${new_name}.dat"
 }
 
 decrypt_files() {
     local filename=""
     local path_to_tar=""
 
-    show_logs 3 "Decrypting archives one by one..."
+    show_logs 3 "Decrypting archives..."
 
     for input_element in "${INPUT_PATHS[@]}"; do
         filename=$(basename "$input_element" .dat)
@@ -336,17 +342,14 @@ decrypt_files() {
         tar -xzf "$path_to_tar" -C "$OUTPUT_PATH"
 
         clean_path "$path_to_tar"
-
-        if [ "$WIPE" == "spare" ] || [ "$WIPE" == "complete" ]; then
-            local warned_user=0
-            if [ "$warned_user" -eq 0 ]; then
-                show_logs 2 "The script will delete input files"
-                warned_user=1
-            fi
-
-            clean_path "$input_element"
-        fi
     done
+
+	if [ $REMOVE -eq 1 ]; then
+		show_logs 2 "The script will delete input files"
+		for input_element in "${INPUT_PATHS[@]}"; do
+            clean_path "$input_element"
+        done
+	fi
 }
 # ------------------------------------------------------------------
 
@@ -364,13 +367,14 @@ main_param=""
 DIR_FOR_CLEANING="all"
 declare -a INPUT_PATHS
 OUTPUT_PATH="$OUTPUT_DIR"
-WIPE="none"
+REMOVE=0
+WIPE=0
 YES=0
 
 INPUT_FLAG=0
 OUTPUT_FLAG=0
 
-while getopts ":hvIedc:Cl:i:o:wWy" param
+while getopts ":hvIedc:Cl:i:o:rwy" param
 do
     if [[ " ${main_params[@]} " =~ "$param" ]]; then
         if [ "$main_param" == "" ]; then
@@ -417,11 +421,11 @@ do
             OUTPUT_PATH="$OPTARG"
             OUTPUT_FLAG=1
             ;;
-        "w")
-            WIPE="spare"
+        "r")
+            REMOVE=1
             ;;
-        "W")
-            WIPE="complete"
+        "w")
+            WIPE=1
             ;;
         "y")
             YES=1

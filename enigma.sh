@@ -126,7 +126,7 @@ clean_path() {
 
     show_logs 4 "Cleaning path: ${path}"
 
-    if [ $WIPE -eq 1 ]; then
+    if (( WIPE == 1 )); then
         wipe -rfq "$path"
     else
         rm -rf "$path"
@@ -179,7 +179,7 @@ show_logs() {
 
     case $msg_log_lvl in
         "1")
-            if [ $LOGGING_LEVEL -ge $msg_log_lvl ]; then
+            if (( LOGGING_LEVEL >= msg_log_lvl )); then
                 msg="$(check_error "$msg" "$obj")"
                 echo "${error_prefix} ${msg}"
             fi
@@ -187,9 +187,9 @@ show_logs() {
             exit 1
             ;;
         "2")
-            if [ $LOGGING_LEVEL -ge $msg_log_lvl ]; then
+            if (( LOGGING_LEVEL >= msg_log_lvl )); then
                 echo "${warning_prefix} ${msg}"
-                if [ $YES -eq 0 ]; then
+                if (( YES == 0 )); then
                     read -p "${warning_prefix} Do you wish to continue? (y/n): " answer
                     if [ "$answer" == "y" ] || [ "$answer" == "Y" ]; then
                         echo "${warning_prefix} You've been warned..."
@@ -202,12 +202,12 @@ show_logs() {
             fi
             ;;
         "3")
-            if [ $LOGGING_LEVEL -ge $msg_log_lvl ]; then
+            if (( LOGGING_LEVEL >= msg_log_lvl )); then
                 echo "${info_prefix} ${msg}"
             fi
             ;;
         "4")
-            if [ $LOGGING_LEVEL -ge $msg_log_lvl ]; then
+            if (( LOGGING_LEVEL >= msg_log_lvl )); then
                 echo "${debug_prefix} ${msg}"
             fi
             ;;
@@ -272,7 +272,7 @@ clean_main_dir() {
 }
 
 encrypt_files() {
-    if [ $REMOVE -eq 1 ]; then
+    if (( REMOVE == 1 )); then
     	show_logs 2 "The script will delete input files"
 	fi
 
@@ -283,7 +283,7 @@ encrypt_files() {
 
 	
     show_logs 3 "Gathering input files..."
-    if [ $REMOVE -eq 1 ]; then
+    if (( REMOVE == 1 )); then
         for input_element in "${INPUT_PATHS[@]}"; do
             mv -t "$new_dir" "$input_element" 
         done
@@ -335,7 +335,7 @@ decrypt_files() {
         clean_path "$path_to_tar"
     done
 
-	if [ $REMOVE -eq 1 ]; then
+	if (( REMOVE == 1 )); then
 		show_logs 2 "The script will remove input files"
 		for input_element in "${INPUT_PATHS[@]}"; do
             clean_path "$input_element"
@@ -453,16 +453,16 @@ touch $LOCK_FILE
 # -----------------------------------------------------------------
 
 # --- Body --------------------------------------------------------
-if [ $LOGGING_LEVEL -eq 4 ]; then
+if (( LOGGING_LEVEL == 4 )); then
     show_main_dir
 fi
 
 if [ "$main_param" == "e" ] || [ "$main_param" == "d" ]; then
-    if [ $INPUT_FLAG -eq 0 ] || [ $OUTPUT_FLAG -eq 0 ]; then
+    if (( INPUT_FLAG == 0 || $OUTPUT_FLAG == 0 )); then
         validate_main_dir_struct
     fi
 
-    if [ $INPUT_FLAG -eq 0 ]; then
+    if (( INPUT_FLAG == 0 )); then
         readarray -t INPUT_PATHS < <(get_dir_elements "$INPUT_DIR")
     else
         declare -A seen_basenames
@@ -480,7 +480,7 @@ if [ "$main_param" == "e" ] || [ "$main_param" == "d" ]; then
         unset seen_basenames
     fi
 
-    if [ $OUTPUT_FLAG -eq 0 ]; then
+    if (( OUTPUT_FLAG == 0 )); then
         OUTPUT_PATH=$OUTPUT_DIR
     fi
 fi
@@ -493,19 +493,19 @@ case "$main_param" in
         echo "Version: ${VERSION}"
         ;;
     "I")
-        if [ "$EUID" -eq 0 ]; then
+        if (( EUID == 0 )); then
             show_logs 2 "I recommend using it with regular user rights (without sudo)"
         fi
         init_main_dir
         ;;
     "e")
-        if [ "$EUID" -eq 0 ]; then
+        if (( EUID == 0 )); then
             show_logs 2 "I recommend using it with regular user rights (without sudo)"
         fi
         encrypt_files
         ;;
     "d")
-        if [ "$EUID" -eq 0 ]; then
+        if (( EUID == 0 )); then
             show_logs 2 "I recommend using it with regular user rights (without sudo)"
         fi
         decrypt_files
@@ -520,7 +520,7 @@ case "$main_param" in
         ;;
 esac
 
-if [ $LOGGING_LEVEL -eq 4 ]; then
+if (( LOGGING_LEVEL == 4 )); then
     show_main_dir
 fi
 

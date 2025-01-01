@@ -296,7 +296,7 @@ encrypt_files() {
     show_logs 3 "Packing files..."
     local path_to_tar="${new_dir}.tar.gz"
     show_logs 4 "Running tar -czf ${path_to_tar} -C ${TEMP_DIR} ${new_name}"
-    tar -czf "$path_to_tar" -C "$TEMP_DIR" "$new_name"
+    tar -czvf "$path_to_tar" -C "$TEMP_DIR" "$new_name"
     
     show_logs 3 "Cleaning temp files..."
     clean_path $new_dir
@@ -304,7 +304,7 @@ encrypt_files() {
     show_logs 3 "Encrypting files..."
     local path_to_gpg="${path_to_tar}.gpg"
     show_logs 4 "Running gpg -o ${path_to_gpg} -c --no-symkey-cache --cipher-algo AES256 ${path_to_tar}"
-    gpg -o $path_to_gpg -c --no-symkey-cache --cipher-algo AES256 $path_to_tar
+    gpg -o $path_to_gpg -cv --no-symkey-cache --cipher-algo AES256 $path_to_tar
 
     show_logs 3 "Cleaning temp tar archive..."
     clean_path $path_to_tar

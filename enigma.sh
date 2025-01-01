@@ -82,7 +82,7 @@ validate_path() {
     path="$1"
 	
 	if [ ! -e "$path" ]; then
-		show_logs 1 "noPath" "$path"
+		show_logs 1 "There's no such path: ${path}"
 	fi
 }
 
@@ -90,7 +90,7 @@ validate_dir() {
     path="$1"
 	
 	if [ ! -d "$path" ] ; then
-		show_logs 1 "noDir" "$path"
+		show_logs 1 "There's no such directory: ${path}"
 	fi
 }
 
@@ -98,7 +98,7 @@ validate_file() {
     path="$1"
 	
 	if [ ! -f $path ] ; then
-		show_logs 1 "noFile" "$path"
+		show_logs 1 "There's no such file: ${path}"
 	fi
 }
 
@@ -138,52 +138,21 @@ generate_name() {
     cat /dev/urandom | tr -dc 'A-Za-z0-9' | head -c $length
 }
 
-check_error() {
-    error="$1"
-    obj="$2"
-    local msg=""
-
-    case "$error" in
-        "mainParam")
-            msg="Choose the only one main parameter"
-            ;;
-        "singletone")
-            msg="The script is running right now. If not, delete the lock file: ${obj}"
-            ;;
-        "noDir")
-            msg="There's no such directory: ${obj}"
-            ;;
-        "noFile")
-            msg="There's no such file: ${obj}"
-            ;;
-        "noPath")
-            msg="There's no such path: ${obj}"
-            ;;
-        *)
-            msg="$error"
-            ;;
-    esac
-
-    echo "$msg"
-}
-
 show_logs() {
-    error_prefix=$'\e[31m[ERROR]\e[0m'
-    warning_prefix=$'\e[33m[WARNING]\e[0m'
-    info_prefix=$'\e[32m[INFO]\e[0m'
-    debug_prefix=$'\e[96m[DEBUG]\e[0m'
+    local error_prefix=$'\e[31m[ERROR]\e[0m'
+    local warning_prefix=$'\e[33m[WARNING]\e[0m'
+    local info_prefix=$'\e[32m[INFO]\e[0m'
+    local debug_prefix=$'\e[96m[DEBUG]\e[0m'
 
-    msg_log_lvl=$1
-    msg="$2"
-    obj="$3"
+    local msg_log_lvl=$1
+    local msg="$2"
+    local nmode=$3
 
     case $msg_log_lvl in
         "1")
             if (( LOGGING_LEVEL >= msg_log_lvl )); then
-                msg="$(check_error "$msg" "$obj")"
                 echo "${error_prefix} ${msg}"
             fi
-
             exit 1
             ;;
         "2")
@@ -203,7 +172,11 @@ show_logs() {
             ;;
         "3")
             if (( LOGGING_LEVEL >= msg_log_lvl )); then
-                echo "${info_prefix} ${msg}"
+                if (( nmode == 1 )); then
+                    echo -n "${info_prefix} ${msg}"
+                else
+                    echo "${info_prefix} ${msg}"
+                fi
             fi
             ;;
         "4")
@@ -299,9 +272,9 @@ encrypt_files() {
     local checkpoint=$((fromsize / 10240 / 50))
     checkpoint=$((checkpoint > 0 ? checkpoint : 1))
 
-    checkpointaction='ttyout=\b->'
-    echo "${info_prefix} Estimated: [==================================================]"
-    echo -n "${info_prefix} Progress:  [ "
+    local checkpointaction='ttyout=\b->'
+    show_logs 3 "Estimated: [==================================================]"
+    show_logs 3 "Progress:  [ " 1
     tar -c --record-size=10240 --checkpoint="$checkpoint" --checkpoint-action="$checkpointaction" -f - -C "$TEMP_DIR" "$new_name" | gzip > "$path_to_tar"
     echo -e "\b]"
 
@@ -310,8 +283,11 @@ encrypt_files() {
 
     show_logs 3 "Encrypting files..."
     local path_to_gpg="${path_to_tar}.gpg"
-    show_logs 4 "Running gpg -o ${path_to_gpg} -c --no-symkey-cache --cipher-algo AES256 ${path_to_tar}"
-    gpg -o $path_to_gpg -cv --no-symkey-cache --cipher-algo AES256 $path_to_tar
+    if ((LOGGING_LEVEL == 4)); then
+        gpg -o $path_to_gpg -cv --no-symkey-cache --cipher-algo AES256 $path_to_tar
+    else
+        gpg -o $path_to_gpg -c --no-symkey-cache --cipher-algo AES256 $path_to_tar
+    fi
 
     show_logs 3 "Cleaning temp tar archive..."
     clean_path $path_to_tar
@@ -378,7 +354,7 @@ do
         if [ "$main_param" == "" ]; then
             main_param="$param"
         else
-            show_logs 1 "mainParam"
+            show_logs 1 "Choose the only one main parameter"
         fi
     fi
 
@@ -452,7 +428,7 @@ show_logs 4 "Parameters parsed. The main param: ${main_param}"
 # --- Locks -------------------------------------------------------
 LOCK_FILE=/tmp/$SUBJECT.lock
 if [ -f "$LOCK_FILE" ]; then
-    show_logs 1 "singletone" "$LOCK_FILE"
+    show_logs 1 "The script is running right now. If not, delete the lock file: ${$LOCK_FILE}"
 fi
 
 trap "rm -f $LOCK_FILE" EXIT

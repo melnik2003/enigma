@@ -79,7 +79,7 @@ show_main_dir() {
 }
 
 validate_path() {
-    path="$1"
+    local path="$1"
 	
 	if [ ! -e "$path" ]; then
 		show_logs 1 "There's no such path: ${path}"
@@ -87,7 +87,7 @@ validate_path() {
 }
 
 validate_dir() {
-    path="$1"
+    local path="$1"
 	
 	if [ ! -d "$path" ] ; then
 		show_logs 1 "There's no such directory: ${path}"
@@ -95,7 +95,7 @@ validate_dir() {
 }
 
 validate_file() {
-    path="$1"
+    local path="$1"
 	
 	if [ ! -f $path ] ; then
 		show_logs 1 "There's no such file: ${path}"
@@ -134,7 +134,7 @@ clean_path() {
 }
 
 generate_name() {
-    length=16
+    local length=16
     cat /dev/urandom | tr -dc 'A-Za-z0-9' | head -c $length
 }
 

@@ -127,7 +127,7 @@ clean_path() {
     show_logs 4 "Cleaning path: ${path}"
 
     if [ $WIPE -eq 1 ]; then
-        wipe -rf "$path"
+        wipe -rfq "$path"
     else
         rm -rf "$path"
     fi

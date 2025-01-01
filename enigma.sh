@@ -295,35 +295,15 @@ encrypt_files() {
 
     show_logs 3 "Packing files..."
     local path_to_tar="${new_dir}.tar.gz"
-    # show_logs 4 "Running tar -czf ${path_to_tar} -C ${TEMP_DIR} ${new_name}"
-    # tar -czf "$path_to_tar" -C "$TEMP_DIR" "$new_name"
-
-
-
-    # Define the source directory and the destination tar file
-
-    # Calculate the total size of the files to be archived in bytes
     local fromsize=$(du --block-size=1 --apparent-size --summarize "$new_dir" | cut -f 1)
+    local checkpoint=$((fromsize / 10240 / 50))
+    checkpoint=$((checkpoint > 0 ? checkpoint : 1))
 
-    # Calculate the checkpoint size based on the total size
-    local checkpoint
-    checkpoint=$((fromsize / 10240 / 50))  # 50 progress steps
-    checkpoint=$((checkpoint > 0 ? checkpoint : 1))  # Ensure the checkpoint is at least 1
-
-    # Set the action to print progress during the tar process
     checkpointaction='ttyout=\b->'
-
-    # Print the initial progress bar (estimated size)
     echo "Estimated: [==================================================]"
-    echo -n "Progress:   [ "
-
-    # Run the tar command with progress monitoring, compressing with gzip
+    echo -n "Progress:  [ "
     tar -c --record-size=10240 --checkpoint="$checkpoint" --checkpoint-action="$checkpointaction" -f - -C "$TEMP_DIR" "$new_name" | gzip > "$path_to_tar"
-
-    # Complete the progress bar
     echo -e "\b]"
-
-
 
     show_logs 3 "Cleaning temp files..."
     clean_path $new_dir

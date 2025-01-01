@@ -503,6 +503,7 @@ case "$main_param" in
         ;;
 esac
 
+show_logs 3 "Script completed successfully"
 if (( LOGGING_LEVEL == 4 )); then
     show_main_dir
 fi

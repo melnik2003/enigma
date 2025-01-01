@@ -7,12 +7,12 @@
 # encryption, decryption and obfuscation
 # It requires tar, gpg, wipe, tree
 # The script works in semi-automatic mode, gpg interface handles some 
-# of the actions like writing passwords
+# of the actions like writing passwords.
+# I recommend using the script with password managers
 # I recommend you to initialize the main directory using -i, it will 
 # help reduce the damage you could do to the system in case you 
 # pass wrong file paths to the script
-# The main directory is not supposed to store files, use it considering
-# every file in it can be deleted sooner or later
+# The main directory is not supposed to store files
 # ------------------------------------------------------------------
 
 # --- Notes for me -------------------------------------------------
@@ -463,7 +463,7 @@ if [ "$main_param" == "e" ] || [ "$main_param" == "d" ]; then
     fi
 
     if [ $INPUT_FLAG -eq 0 ]; then
-        INPUT_PATHS=$(get_dir_elements "$INPUT_DIR")
+        readarray -t INPUT_PATHS < <(get_dir_elements "$INPUT_DIR")
     else
         declare -A seen_basenames
 

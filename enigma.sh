@@ -300,8 +300,8 @@ encrypt_files() {
     checkpoint=$((checkpoint > 0 ? checkpoint : 1))
 
     checkpointaction='ttyout=\b->'
-    echo "Estimated: [==================================================]"
-    echo -n "Progress:  [ "
+    echo "${info_prefix} Estimated: [==================================================]"
+    echo -n "${info_prefix} Progress:  [ "
     tar -c --record-size=10240 --checkpoint="$checkpoint" --checkpoint-action="$checkpointaction" -f - -C "$TEMP_DIR" "$new_name" | gzip > "$path_to_tar"
     echo -e "\b]"
 

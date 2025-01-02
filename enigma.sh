@@ -9,18 +9,14 @@
 # The script works in semi-automatic mode, gpg interface handles some 
 # of the actions like writing passwords.
 # I recommend using the script with password managers
-# I recommend you to initialize the main directory using -i, it will 
-# help reduce the damage you could do to the system in case you 
+# Also I recommend you to initialize the main directory using -i, it 
+# will help reduce the damage you could do to the system in case you 
 # pass wrong file paths to the script
 # The main directory is not supposed to store files
 # ------------------------------------------------------------------
 
-# --- Notes for me -------------------------------------------------
-# Add variable and option to change .dat obfuscation extension
-# ------------------------------------------------------------------
-
 # --- Global -------------------------------------------------------
-VERSION=0.2.0
+VERSION=1.0.0
 SUBJECT=$0
 
 MAIN_DIR="$(dirname "$(realpath "$0")")"

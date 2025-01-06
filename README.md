@@ -13,7 +13,7 @@ Enigma is a simple encryption-decryption script designed for secure archiving on
 - **Secure Encryption**: Protect your files with gpg encryption.
 - **Effortless Decryption**: Easily decrypt archives when needed.
 - **Customizable Options**: Set cli options to suit your requirements.
-- **Lightweight**: Minimal resource usage for efficient performance.
+- **Lightweight**: Optimized resource usage for efficient performance.
 
 ## Installation
 ### Requirements
@@ -80,7 +80,7 @@ After installation you have the main directory with the main script, the update 
 gpg password window has a timeout, be careful when using with -r option. That's why I added progress bar to the tar command, use it to be prepared
 
 ## License
-No license
+No license, feel free to fork and contribute
 
 ## Acknowledgments
 - Me
